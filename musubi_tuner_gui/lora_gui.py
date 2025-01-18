@@ -1,4 +1,5 @@
 import gradio as gr
+import os
 import time
 
 from datetime import datetime
@@ -7,18 +8,85 @@ from .class_advanced_training import AdvancedTraining
 from .class_command_executor import CommandExecutor
 from .class_configuration_file import ConfigurationFile
 from .class_gui_config import GUIConfig
-
 from .common_gui import (
+    get_saveasfile_path,
     print_command_and_toml,
     run_cmd_advanced_training,
+    SaveConfigFile,
     scriptdir,
     setup_environment,
 )
+from .custom_logging import setup_logging
+
+# Set up logging
+log = setup_logging()
 
 # Setup command executor
 executor = None
 
 train_state_value = time.time()
+
+def save_configuration(
+    # control
+    save_as_bool,
+    file_path,
+    
+    # accelerate_launch
+    mixed_precision,
+    num_cpu_threads_per_process,
+    num_processes,
+    num_machines,
+    multi_gpu,
+    gpu_ids,
+    main_process_port,
+    dynamo_backend,
+    dynamo_mode,
+    dynamo_use_fullgraph,
+    dynamo_use_dynamic,
+    extra_accelerate_launch_args,
+    
+    # advanced_training
+    additional_parameters
+):
+    # Get list of function parameters and values
+    parameters = list(locals().items())
+
+    original_file_path = file_path
+
+    # If saving as a new file, get the file path for saving
+    if save_as_bool:
+        log.info("Save as...")
+        file_path = get_saveasfile_path(file_path, defaultextension=".toml", extension_name="TOML files (*.toml)")
+    # If not saving as a new file, check if a file path was provided
+    else:
+        log.info("Save...")
+        # If no file path was provided, get the file path for saving
+        if file_path == None or file_path == "":
+            file_path = get_saveasfile_path(file_path, defaultextension=".toml", extension_name="TOML files (*.toml)")
+
+    # Log the file path for debugging purposes
+    log.debug(file_path)
+
+    # If no file path was provided, return the original file path
+    if file_path == None or file_path == "":
+        return original_file_path  # In case a file_path was provided and the user decide to cancel the open action
+
+    # Extract the destination directory from the file path
+    destination_directory = os.path.dirname(file_path)
+
+    # Create the destination directory if it doesn't exist
+    if not os.path.exists(destination_directory):
+        os.makedirs(destination_directory)
+
+    # Save the configuration file
+    SaveConfigFile(
+        parameters=parameters,
+        file_path=file_path,
+        exclusion=["file_path", "save_as"],
+    )
+
+    # Return the file path of the saved configuration
+    return file_path
 
 def train_model(
     # control
@@ -112,6 +180,10 @@ def lora_tab(
     
     with gr.Accordion("Accelerate launch", open=False), gr.Column():
             accelerate_launch = AccelerateLaunch(config=config)
+            
+    # Setup Configuration Files Gradio
+    with gr.Accordion("Configuration", open=False):
+        configuration = ConfigurationFile(headless=headless, config=config)
     
     advanced_training = AdvancedTraining(
         headless=headless, training_type="lora", config=config
@@ -147,6 +219,13 @@ def lora_tab(
     
     global executor
     executor = CommandExecutor(headless=headless)
+    
+    configuration.button_save_config.click(
+        save_configuration,
+        inputs=[dummy_false, configuration.config_file_name] + settings_list,
+        outputs=[configuration.config_file_name],
+        show_progress=False,
+    )
     
     run_state.change(
         fn=executor.wait_for_training_to_end,

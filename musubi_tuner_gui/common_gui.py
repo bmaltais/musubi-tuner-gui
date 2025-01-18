@@ -1262,17 +1262,16 @@ def verify_image_folder_pattern(folder_path: str) -> bool:
     # Return True to indicate that the folder pattern is valid
     return return_value
 
-
 def SaveConfigFile(
     parameters,
     file_path: str,
     exclusion: list = ["file_path", "save_as", "headless", "print_only"],
 ) -> None:
     """
-    Saves the configuration parameters to a JSON file, excluding specified keys.
+    Saves the configuration parameters to a TOML file, excluding specified keys.
 
     This function iterates over a dictionary of parameters, filters out keys listed
-    in the `exclusion` list, and saves the remaining parameters to a JSON file
+    in the `exclusion` list, and saves the remaining parameters to a TOML file
     specified by `file_path`.
 
     Args:
@@ -1280,26 +1279,19 @@ def SaveConfigFile(
         file_path (str): Path to the file where the filtered parameters should be saved.
         exclusion (list): List of keys to exclude from saving. Defaults to ["file_path", "save_as", "headless", "print_only"].
     """
-    # Return the values of the variables as a dictionary
     variables = {
         name: value
         for name, value in sorted(parameters, key=lambda x: x[0])
         if name not in exclusion
     }
 
-    # Check if the folder path for the file_path is valid
-    # Extrach folder path
     folder_path = os.path.dirname(file_path)
-
-    # Check if the folder exists
     if not os.path.exists(folder_path):
-        # If not, create the folder
-        os.makedirs(os.path.dirname(folder_path))
+        os.makedirs(folder_path)
         log.info(f"Creating folder {folder_path} for the configuration file...")
 
-    # Save the data to the specified JSON file
     with open(file_path, "w", encoding="utf-8") as file:
-        json.dump(variables, file, indent=2)
+        toml.dump(variables, file)
 
 
 def save_to_file(content):

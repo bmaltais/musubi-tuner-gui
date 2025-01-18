@@ -582,6 +582,7 @@ dependencies = [
     { name = "opencv-python" },
     { name = "pillow" },
     { name = "safetensors" },
+    { name = "sageattention" },
     { name = "tensorboard" },
     { name = "toml" },
     { name = "torch" },
@@ -604,6 +605,7 @@ requires-dist = [
     { name = "opencv-python", specifier = ">=4.10.0.84" },
     { name = "pillow", specifier = ">=10.2.0" },
     { name = "safetensors", specifier = ">=0.4.5" },
+    { name = "sageattention", specifier = ">=1.0.6" },
     { name = "tensorboard", specifier = ">=2.18.0" },
     { name = "toml", specifier = ">=0.10.2" },
     { name = "torch", specifier = ">=2.5.1" },
@@ -620,12 +622,14 @@ source = { virtual = "." }
 dependencies = [
     { name = "gradio" },
     { name = "musubi-tuner" },
+    { name = "sageattention", marker = "sys_platform == 'linux'" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "gradio" },
+    { name = "gradio", specifier = ">=5.0.0" },
     { name = "musubi-tuner", virtual = "musubi-tuner" },
+    { name = "sageattention", marker = "sys_platform == 'linux'", specifier = "==1.0.6" },
 ]
 
 [[package]]
@@ -1123,6 +1127,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/b0/71/2f9851164f821064d43b481ddbea0149c2d676c4f4e077b178e7eeaa6660/safetensors-0.5.2-cp38-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:5c5b5d9da594f638a259fca766046f44c97244cc7ab8bef161b3e80d04becc76", size = 632533 },
     { url = "https://files.pythonhosted.org/packages/00/f1/5680e2ef61d9c61454fad82c344f0e40b8741a9dbd1e31484f0d31a9b1c3/safetensors-0.5.2-cp38-abi3-win32.whl", hash = "sha256:fe55c039d97090d1f85277d402954dd6ad27f63034fa81985a9cc59655ac3ee2", size = 291167 },
     { url = "https://files.pythonhosted.org/packages/86/ca/aa489392ec6fb59223ffce825461e1f811a3affd417121a2088be7a5758b/safetensors-0.5.2-cp38-abi3-win_amd64.whl", hash = "sha256:78abdddd03a406646107f973c7843276e7b64e5e32623529dc17f3d94a20f589", size = 303756 },
+]
+
+[[package]]
+name = "sageattention"
+version = "1.0.6"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a5/c9/0445157fd09c8e5722503588db2a25afe9ab362d927b344dbbe7ee3ce84b/sageattention-1.0.6.tar.gz", hash = "sha256:b0398a5877222ee1abaeccd27d1029309c8b57994794a11c1278e0bfd176512c", size = 12611 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/53/06/f7b47adb766bcb38b3f88763374a3e8dffea05ee9b556bc24dbcbd60fd29/sageattention-1.0.6-py3-none-any.whl", hash = "sha256:fafc66569bed62a16839e820c2612141b5a20accf55b876d941bab9c0ac5d888", size = 20105 },
 ]
 
 [[package]]

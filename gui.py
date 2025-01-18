@@ -7,6 +7,7 @@ import gradio as gr
 
 from musubi_tuner_gui.lora_gui import lora_tab
 from musubi_tuner_gui.custom_logging import setup_logging
+from musubi_tuner_gui.class_gui_config import GUIConfig
 
 PYTHON = sys.executable
 project_dir = os.path.dirname(os.path.abspath(__file__))
@@ -19,7 +20,7 @@ def read_file_content(file_path):
     return ""
 
 # Function to initialize the Gradio UI interface
-def initialize_ui_interface(headless, release_info, readme_content):
+def initialize_ui_interface(config, headless, release_info, readme_content):
     # Load custom CSS if available
     css = read_file_content("./assets/style.css")
 
@@ -28,7 +29,7 @@ def initialize_ui_interface(headless, release_info, readme_content):
     with ui_interface:
         # Create tabs for different functionalities
         with gr.Tab("LoRA"):
-            lora_tab(headless=headless)
+            lora_tab(headless=headless, config=config)
         
         with gr.Tab("About"):
             # About tab to display release information and README content
@@ -49,9 +50,14 @@ def UI(**kwargs):
     # Load release and README information
     release_info = read_file_content("./.release")
     readme_content = read_file_content("./README.md")
+    
+    # Load configuration from the specified file
+    config = GUIConfig(config_file_path=kwargs.get("config"))
+    if config.is_config_loaded():
+        log.info(f"Loaded default GUI values from '{kwargs.get('config')}'...")
 
     # Initialize the Gradio UI interface
-    ui_interface = initialize_ui_interface(kwargs.get("headless", False), release_info, readme_content)
+    ui_interface = initialize_ui_interface(config, kwargs.get("headless", False), release_info, readme_content)
 
     # Construct launch parameters using dictionary comprehension
     launch_params = {

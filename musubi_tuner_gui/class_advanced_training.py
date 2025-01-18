@@ -140,7 +140,7 @@ class AdvancedTraining:
             self.additional_parameters = gr.Textbox(
                 label="Additional parameters",
                 placeholder='(Optional) Use to provide additional parameters not handled by the GUI. Eg: --some_parameters "value"',
-                value=self.config.get("advanced.additional_parameters", ""),
+                value=self.config.get("additional_parameters", ""),
             )
             
         # with gr.Accordion("Scheduled Huber Loss", open=False):

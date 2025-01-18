@@ -37,3 +37,9 @@ set Path=C:\Users\berna\.local\bin;%Path%
 ```powershell
 $env:Path = "C:\Users\berna\.local\bin;$env:Path"
 ```
+
+## Starting the GUI
+
+```shell
+uv run gui.py
+```

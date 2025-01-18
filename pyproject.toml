@@ -4,4 +4,10 @@ version = "0.1.0"
 description = "GUI for musubi-tuner"
 readme = "README.md"
 requires-python = ">=3.10, <3.11"
-dependencies = []
+dependencies = [
+    "musubi-tuner",
+    "gradio",
+]
+
+[tool.uv.sources]
+musubi-tuner = { path = "musubi-tuner" }

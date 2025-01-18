@@ -172,3 +172,4 @@ cython_debug/
 
 # Other
 *.npz
+test/output

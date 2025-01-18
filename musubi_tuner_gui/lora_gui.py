@@ -1,6 +1,7 @@
 import gradio as gr
 import os
 import time
+import toml
 
 from datetime import datetime
 from .class_accelerate_launch import AccelerateLaunch
@@ -9,6 +10,7 @@ from .class_command_executor import CommandExecutor
 from .class_configuration_file import ConfigurationFile
 from .class_gui_config import GUIConfig
 from .common_gui import (
+    get_file_path,
     get_saveasfile_path,
     print_command_and_toml,
     run_cmd_advanced_training,
@@ -87,6 +89,64 @@ def save_configuration(
 
     # Return the file path of the saved configuration
     return file_path
+
+def open_configuration(
+    # control
+    ask_for_file,
+    file_path,
+    
+    # accelerate_launch
+    mixed_precision,
+    num_cpu_threads_per_process,
+    num_processes,
+    num_machines,
+    multi_gpu,
+    gpu_ids,
+    main_process_port,
+    dynamo_backend,
+    dynamo_mode,
+    dynamo_use_fullgraph,
+    dynamo_use_dynamic,
+    extra_accelerate_launch_args,
+    
+    # advanced_training
+    additional_parameters
+):
+    # Get list of function parameters and their values
+    parameters = list(locals().items())
+
+    # Store the original file path for potential reuse
+    original_file_path = file_path
+
+    # Request a file path from the user if required
+    if ask_for_file:
+        file_path = get_file_path(file_path, default_extension=".toml", extension_name="TOML files (*.toml)")
+
+    # Proceed if the file path is valid (not empty or None)
+    if not file_path == "" and not file_path == None:
+        # Check if the file exists before opening it
+        if not os.path.isfile(file_path):
+            log.error(f"Config file {file_path} does not exist.")
+            return
+
+        # Load variables from TOML file
+        with open(file_path, "r", encoding="utf-8") as f:
+            my_data = toml.load(f)
+            log.info("Loading config...")
+    else:
+        # Reset the file path to the original if the operation was cancelled or invalid
+        file_path = original_file_path  # In case a file_path was provided and the user decides to cancel the open action
+        my_data = {}  # Initialize an empty dict if no data was loaded
+
+    values = [file_path]
+    # Iterate over parameters to set their values from `my_data` or use default if not found
+    for key, value in parameters:
+        if not key in ["ask_for_file", "apply_preset", "file_path"]:
+            toml_value = my_data.get(key)
+            # Append the value from TOML if present; otherwise, use the parameter's default value
+            values.append(toml_value if toml_value is not None else value)
+
+    return tuple(values)
 
 def train_model(
     # control
@@ -219,6 +279,24 @@ def lora_tab(
     
     global executor
     executor = CommandExecutor(headless=headless)
+    
+    configuration.button_open_config.click(
+            open_configuration,
+            inputs=[dummy_true, configuration.config_file_name]
+            + settings_list,
+            outputs=[configuration.config_file_name]
+            + settings_list,
+            show_progress=False,
+        )
+    
+    configuration.button_load_config.click(
+            open_configuration,
+            inputs=[dummy_false, configuration.config_file_name]
+            + settings_list,
+            outputs=[configuration.config_file_name]
+            + settings_list,
+            show_progress=False,
+        )
     
     configuration.button_save_config.click(
         save_configuration,

@@ -41,5 +41,7 @@ $env:Path = "C:\Users\berna\.local\bin;$env:Path"
 ## Starting the GUI
 
 ```shell
+git clone --recursive https://github.com/bmaltais/musubi-tuner-gui.git
+cd musubi-tuner-gui
 uv run gui.py
 ```

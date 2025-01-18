@@ -30,7 +30,7 @@ if os.name == "nt":
     scriptdir = scriptdir.replace("\\", "/")
 
 # insert sd-scripts path into PYTHONPATH
-sys.path.insert(0, os.path.join(scriptdir, "sd-scripts"))
+sys.path.insert(0, os.path.join(scriptdir, "musubi-tuner"))
 
 # define a list of substrings to search for v2 base models
 V2_BASE_MODELS = [
@@ -1498,7 +1498,7 @@ def is_file_writable(file_path: str) -> bool:
         return False
 
 
-def print_command_and_toml(run_cmd, tmpfilename):
+def print_command_and_toml(run_cmd, tmpfilename=""):
     log.warning(
         "Here is the trainer command as a reference. It will not be executed:\n"
     )
@@ -1508,13 +1508,14 @@ def print_command_and_toml(run_cmd, tmpfilename):
     print(command_to_run)
     print("")
 
-    log.info(f"Showing toml config file: {tmpfilename}")
-    print("")
-    with open(tmpfilename, "r", encoding="utf-8") as toml_file:
-        log.info(toml_file.read())
-    log.info(f"end of toml config file: {tmpfilename}")
+    if tmpfilename != "":
+        log.info(f"Showing toml config file: {tmpfilename}")
+        print("")
+        with open(tmpfilename, "r", encoding="utf-8") as toml_file:
+            log.info(toml_file.read())
+        log.info(f"end of toml config file: {tmpfilename}")
 
-    save_to_file(command_to_run)
+        save_to_file(command_to_run)
 
 
 def validate_args_setting(input_string):

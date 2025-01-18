@@ -26,13 +26,13 @@ powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 
 To add `C:\Users\berna\.local\bin` to your PATH, either restart your system or run:
 
-CMD:
+#### CMD
 
 ```cmd
 set Path=C:\Users\berna\.local\bin;%Path%
 ```
 
-Powershell:
+#### Powershell
 
 ```powershell
 $env:Path = "C:\Users\berna\.local\bin;$env:Path"

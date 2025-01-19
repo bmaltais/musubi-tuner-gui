@@ -16,6 +16,13 @@ class Model:
 
     def initialize_ui_components(self) -> None:
         with gr.Row():
+            self.dataset_config = gr.Textbox(
+                label="Dataset Config",
+                placeholder='Path to the dataset config file',
+                value=str(self.config.get("dataset_config", "")),
+            )
+
+        with gr.Row():
             self.dit = gr.Textbox(
                 label="DiT Checkpoint Path",
                 placeholder="Path to DiT checkpoint",

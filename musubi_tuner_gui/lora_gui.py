@@ -9,10 +9,12 @@ from .class_advanced_training import AdvancedTraining
 from .class_command_executor import CommandExecutor
 from .class_configuration_file import ConfigurationFile
 from .class_gui_config import GUIConfig
+from .class_latent_caching import LatentCaching
 from .class_model import Model
 from .class_network import Network
 from .class_optimizer_and_scheduler import OptimizerAndScheduler
 from .class_save_load import SaveLoadSettings
+from .class_text_encoder_outputs_caching import TextEncoderOutputsCaching
 from .class_training import TrainingSettings
 from .common_gui import (
     get_file_path,
@@ -90,6 +92,27 @@ def gui_actions(
     sample_at_first,
     sample_every_n_epochs,
     sample_prompts,
+    # Latent Caching
+    caching_latent_device,
+    caching_latent_batch_size,
+    caching_latent_num_workers,
+    caching_latent_skip_existing,
+    caching_latent_keep_cache,
+    caching_latent_debug_mode,
+    caching_latent_console_width,
+    caching_latent_console_back,
+    caching_latent_console_num_images,
+    
+    # Text Encoder Outputs Caching
+    caching_teo_text_encoder1,
+    caching_teo_text_encoder2,
+    caching_teo_text_encoder_dtype,
+    caching_teo_device,
+    caching_teo_fp8_llm,
+    caching_teo_batch_size,
+    caching_teo_num_workers,
+    caching_teo_skip_existing,
+    caching_teo_keep_cache,
     optimizer_type,
     optimizer_args,
     learning_rate,
@@ -346,6 +369,11 @@ def train_model(
 
         log.info(f"Saving training config to {file_path}...")
 
+        pattern_exclusion = []
+        for key, _ in parameters:
+            if key.startswith('caching_latent_') or key.startswith('caching_teo_'):
+                pattern_exclusion.append(key)
+
         SaveConfigFileToRun(
             parameters=parameters,
             file_path=file_path,
@@ -365,7 +393,7 @@ def train_model(
                 "dynamo_use_fullgraph",
                 "dynamo_use_dynamic",
                 "extra_accelerate_launch_args",
-            ],
+            ] + pattern_exclusion,
         )
         
         run_cmd.append("--config_file")
@@ -401,6 +429,7 @@ def lora_tab(
     dummy_true = gr.Checkbox(value=True, visible=False)
     dummy_false = gr.Checkbox(value=False, visible=False)
     dummy_headless = gr.Checkbox(value=headless, visible=False)
+    
 
     # Setup Configuration Files Gradio
     with gr.Accordion("Configuration file Settings", open=False):
@@ -411,6 +440,13 @@ def lora_tab(
         
     with gr.Accordion("Model Settings", open=True, elem_classes="preset_background"):
         model = Model(headless=headless, config=config)
+        
+    with gr.Accordion("Caching", open=True, elem_classes="samples_background"):
+        with gr.Tab("Latent caching"):
+            latentCaching = LatentCaching(headless=headless, config=config)
+                
+        with gr.Tab("Text encoder caching"):
+            teoCaching = TextEncoderOutputsCaching(headless=headless, config=config)
         
     with gr.Accordion("Save Load Settings", open=True, elem_classes="samples_background"):
         saveLoadSettings = SaveLoadSettings(headless=headless, config=config)
@@ -454,8 +490,10 @@ def lora_tab(
         # advanced_training
         advanced_training.additional_parameters,
         
+        # Dataset Settings
+        model.dataset_config,
+        
         # trainingSettings
-        trainingSettings.dataset_config,
         trainingSettings.sdpa,
         trainingSettings.flash_attn,
         trainingSettings.sage_attn,
@@ -483,6 +521,28 @@ def lora_tab(
         trainingSettings.sample_at_first,
         trainingSettings.sample_every_n_epochs,
         trainingSettings.sample_prompts,
+        
+        # Latent Caching
+        latentCaching.caching_latent_device,
+        latentCaching.caching_latent_batch_size,
+        latentCaching.caching_latent_num_workers,
+        latentCaching.caching_latent_skip_existing,
+        latentCaching.caching_latent_keep_cache,
+        latentCaching.caching_latent_debug_mode,
+        latentCaching.caching_latent_console_width,
+        latentCaching.caching_latent_console_back,
+        latentCaching.caching_latent_console_num_images,
+        
+        # Text Encoder Outputs Caching
+        teoCaching.caching_teo_text_encoder1,
+        teoCaching.caching_teo_text_encoder2,
+        teoCaching.caching_teo_text_encoder_dtype,
+        teoCaching.caching_teo_device,
+        teoCaching.caching_teo_fp8_llm,
+        teoCaching.caching_teo_batch_size,
+        teoCaching.caching_teo_num_workers,
+        teoCaching.caching_teo_skip_existing,
+        teoCaching.caching_teo_keep_cache,
         
         # OptimizerAndSchedulerSettings
         OptimizerAndSchedulerSettings.optimizer_type,
@@ -622,3 +682,5 @@ def lora_tab(
         executor.kill_command,
         outputs=[executor.button_run, executor.button_stop_training],
     )
+
+    

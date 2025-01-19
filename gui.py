@@ -29,7 +29,7 @@ def initialize_ui_interface(config, headless, release_info, readme_content):
     ui_interface = gr.Blocks(css=css, title=f"Musubi Tuner GUI {release_info}", theme=gr.themes.Default())
     with ui_interface:
         # Create tabs for different functionalities
-        with gr.Tab("LoRA"):
+        with gr.Tab("Musubi Tuner"):
             lora_tab(headless=headless, config=config)
         
         with gr.Tab("About"):

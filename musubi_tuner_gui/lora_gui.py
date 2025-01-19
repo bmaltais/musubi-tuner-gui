@@ -9,6 +9,11 @@ from .class_advanced_training import AdvancedTraining
 from .class_command_executor import CommandExecutor
 from .class_configuration_file import ConfigurationFile
 from .class_gui_config import GUIConfig
+from .class_model import Model
+from .class_network import Network
+from .class_optimizer_and_scheduler import OptimizerAndScheduler
+from .class_save_load import SaveLoadSettings
+from .class_training import TrainingSettings
 from .common_gui import (
     get_file_path,
     get_saveasfile_path,
@@ -255,7 +260,6 @@ def save_configuration(
     # Return the file path of the saved configuration
     return file_path
 
-
 def open_configuration(
     # control
     ask_for_file,
@@ -299,7 +303,6 @@ def open_configuration(
             values.append(toml_value if toml_value is not None else value)
 
     return tuple(values)
-
 
 def train_model(
     # control
@@ -391,7 +394,6 @@ def train_model(
             gr.Textbox(value=train_state_value),
         )
 
-
 def lora_tab(
     headless=False,
     config: GUIConfig = {},
@@ -400,25 +402,42 @@ def lora_tab(
     dummy_false = gr.Checkbox(value=False, visible=False)
     dummy_headless = gr.Checkbox(value=headless, visible=False)
 
-    with gr.Accordion("Accelerate launch", open=False), gr.Column():
-        accelerate_launch = AccelerateLaunch(config=config)
-
     # Setup Configuration Files Gradio
-    with gr.Accordion("Configuration", open=False):
+    with gr.Accordion("Configuration file Settings", open=False):
         configuration = ConfigurationFile(headless=headless, config=config)
 
-    advanced_training = AdvancedTraining(
-        headless=headless, training_type="lora", config=config
-    )
+    with gr.Accordion("Accelerate launch Settings", open=False, elem_classes="flux1_background"), gr.Column():
+        accelerate_launch = AccelerateLaunch(config=config)
+        
+    with gr.Accordion("Model Settings", open=True, elem_classes="preset_background"):
+        model = Model(headless=headless, config=config)
+        
+    with gr.Accordion("Save Load Settings", open=True, elem_classes="samples_background"):
+        saveLoadSettings = SaveLoadSettings(headless=headless, config=config)
+        
+    with gr.Accordion("Optimizer and Scheduler Settings", open=True, elem_classes="flux1_rank_layers_background"):
+        OptimizerAndSchedulerSettings = OptimizerAndScheduler(headless=headless, config=config)
+        
+    with gr.Accordion("Network Settings", open=True, elem_classes="flux1_background"):
+        network = Network(headless=headless, config=config)
+        
+    with gr.Accordion("Training Settings", open=True, elem_classes="preset_background"):
+        trainingSettings = TrainingSettings(headless=headless, config=config)
 
-    with gr.Accordion("Metadata", open=False), gr.Group():
+    with gr.Accordion("Advanced Settings", open=True, elem_classes="samples_background"):
+        advanced_training = AdvancedTraining(
+            headless=headless, training_type="lora", config=config
+        )
+
+    with gr.Accordion("Metadata Settings", open=False, elem_classes="flux1_rank_layers_background"), gr.Group():
         metadata = MetaData(config=config)
 
     global huggingface
-    with gr.Accordion("HuggingFace", open=False, elem_classes="huggingface_background"):
+    with gr.Accordion("HuggingFace Settings", open=False, elem_classes="huggingface_background"):
         huggingface = HuggingFace(config=config)
 
     settings_list = [
+        # accelerate_launch
         accelerate_launch.mixed_precision,
         accelerate_launch.num_cpu_threads_per_process,
         accelerate_launch.num_processes,
@@ -431,95 +450,109 @@ def lora_tab(
         accelerate_launch.dynamo_use_fullgraph,
         accelerate_launch.dynamo_use_dynamic,
         accelerate_launch.extra_accelerate_launch_args,
+        
+        # advanced_training
         advanced_training.additional_parameters,
-        advanced_training.dataset_config,
-        advanced_training.sdpa,
-        advanced_training.flash_attn,
-        advanced_training.sage_attn,
-        advanced_training.xformers,
-        advanced_training.split_attn,
-        advanced_training.max_train_steps,
-        advanced_training.max_train_epochs,
-        advanced_training.max_data_loader_n_workers,
-        advanced_training.persistent_data_loader_workers,
-        advanced_training.seed,
-        advanced_training.gradient_checkpointing,
-        advanced_training.gradient_accumulation_steps,
-        advanced_training.logging_dir,
-        advanced_training.log_with,
-        advanced_training.log_prefix,
-        advanced_training.log_tracker_name,
-        advanced_training.wandb_run_name,
-        advanced_training.log_tracker_config,
-        advanced_training.wandb_api_key,
-        advanced_training.log_config,
-        advanced_training.ddp_timeout,
-        advanced_training.ddp_gradient_as_bucket_view,
-        advanced_training.ddp_static_graph,
-        advanced_training.sample_every_n_steps,
-        advanced_training.sample_at_first,
-        advanced_training.sample_every_n_epochs,
-        advanced_training.sample_prompts,
-        advanced_training.optimizer_type,
-        advanced_training.optimizer_args,
-        advanced_training.learning_rate,
-        advanced_training.max_grad_norm,
-        advanced_training.lr_scheduler,
-        advanced_training.lr_warmup_steps,
-        advanced_training.lr_decay_steps,
-        advanced_training.lr_scheduler_num_cycles,
-        advanced_training.lr_scheduler_power,
-        advanced_training.lr_scheduler_timescale,
-        advanced_training.lr_scheduler_min_lr_ratio,
-        advanced_training.lr_scheduler_type,
-        advanced_training.lr_scheduler_args,
-        advanced_training.dit,
-        advanced_training.dit_dtype,
-        advanced_training.vae,
-        advanced_training.vae_dtype,
-        advanced_training.vae_tiling,
-        advanced_training.vae_chunk_size,
-        advanced_training.vae_spatial_tile_sample_min_size,
-        advanced_training.text_encoder1,
-        advanced_training.text_encoder2,
-        advanced_training.fp8_llm,
-        advanced_training.fp8_base,
-        advanced_training.blocks_to_swap,
-        advanced_training.img_in_txt_in_offloading,
-        advanced_training.guidance_scale,
-        advanced_training.timestep_sampling,
-        advanced_training.discrete_flow_shift,
-        advanced_training.sigmoid_scale,
-        advanced_training.weighting_scheme,
-        advanced_training.logit_mean,
-        advanced_training.logit_std,
-        advanced_training.mode_scale,
-        advanced_training.min_timestep,
-        advanced_training.max_timestep,
-        advanced_training.show_timesteps,
-        advanced_training.no_metadata,
-        advanced_training.network_weights,
-        advanced_training.network_module,
-        advanced_training.network_dim,
-        advanced_training.network_alpha,
-        advanced_training.network_dropout,
-        advanced_training.network_args,
-        advanced_training.training_comment,
-        advanced_training.dim_from_weights,
-        advanced_training.scale_weight_norms,
-        advanced_training.base_weights,
-        advanced_training.base_weights_multiplier,
-        advanced_training.output_dir,
-        advanced_training.output_name,
-        advanced_training.resume,
-        advanced_training.save_every_n_epochs,
-        advanced_training.save_every_n_steps,
-        advanced_training.save_last_n_epochs,
-        advanced_training.save_last_n_epochs_state,
-        advanced_training.save_last_n_steps,
-        advanced_training.save_last_n_steps_state,
-        advanced_training.save_state,
-        advanced_training.save_state_on_train_end,
+        
+        # trainingSettings
+        trainingSettings.dataset_config,
+        trainingSettings.sdpa,
+        trainingSettings.flash_attn,
+        trainingSettings.sage_attn,
+        trainingSettings.xformers,
+        trainingSettings.split_attn,
+        trainingSettings.max_train_steps,
+        trainingSettings.max_train_epochs,
+        trainingSettings.max_data_loader_n_workers,
+        trainingSettings.persistent_data_loader_workers,
+        trainingSettings.seed,
+        trainingSettings.gradient_checkpointing,
+        trainingSettings.gradient_accumulation_steps,
+        trainingSettings.logging_dir,
+        trainingSettings.log_with,
+        trainingSettings.log_prefix,
+        trainingSettings.log_tracker_name,
+        trainingSettings.wandb_run_name,
+        trainingSettings.log_tracker_config,
+        trainingSettings.wandb_api_key,
+        trainingSettings.log_config,
+        trainingSettings.ddp_timeout,
+        trainingSettings.ddp_gradient_as_bucket_view,
+        trainingSettings.ddp_static_graph,
+        trainingSettings.sample_every_n_steps,
+        trainingSettings.sample_at_first,
+        trainingSettings.sample_every_n_epochs,
+        trainingSettings.sample_prompts,
+        
+        # OptimizerAndSchedulerSettings
+        OptimizerAndSchedulerSettings.optimizer_type,
+        OptimizerAndSchedulerSettings.optimizer_args,
+        OptimizerAndSchedulerSettings.learning_rate,
+        OptimizerAndSchedulerSettings.max_grad_norm,
+        OptimizerAndSchedulerSettings.lr_scheduler,
+        OptimizerAndSchedulerSettings.lr_warmup_steps,
+        OptimizerAndSchedulerSettings.lr_decay_steps,
+        OptimizerAndSchedulerSettings.lr_scheduler_num_cycles,
+        OptimizerAndSchedulerSettings.lr_scheduler_power,
+        OptimizerAndSchedulerSettings.lr_scheduler_timescale,
+        OptimizerAndSchedulerSettings.lr_scheduler_min_lr_ratio,
+        OptimizerAndSchedulerSettings.lr_scheduler_type,
+        OptimizerAndSchedulerSettings.lr_scheduler_args,
+        
+        # model
+        model.dit,
+        model.dit_dtype,
+        model.vae,
+        model.vae_dtype,
+        model.vae_tiling,
+        model.vae_chunk_size,
+        model.vae_spatial_tile_sample_min_size,
+        model.text_encoder1,
+        model.text_encoder2,
+        model.fp8_llm,
+        model.fp8_base,
+        model.blocks_to_swap,
+        model.img_in_txt_in_offloading,
+        model.guidance_scale,
+        model.timestep_sampling,
+        model.discrete_flow_shift,
+        model.sigmoid_scale,
+        model.weighting_scheme,
+        model.logit_mean,
+        model.logit_std,
+        model.mode_scale,
+        model.min_timestep,
+        model.max_timestep,
+        model.show_timesteps,
+        
+        # network
+        network.no_metadata,
+        network.network_weights,
+        network.network_module,
+        network.network_dim,
+        network.network_alpha,
+        network.network_dropout,
+        network.network_args,
+        network.training_comment,
+        network.dim_from_weights,
+        network.scale_weight_norms,
+        network.base_weights,
+        network.base_weights_multiplier,
+        
+        # saveLoadSettings
+        saveLoadSettings.output_dir,
+        saveLoadSettings.output_name,
+        saveLoadSettings.resume,
+        saveLoadSettings.save_every_n_epochs,
+        saveLoadSettings.save_every_n_steps,
+        saveLoadSettings.save_last_n_epochs,
+        saveLoadSettings.save_last_n_epochs_state,
+        saveLoadSettings.save_last_n_steps,
+        saveLoadSettings.save_last_n_steps_state,
+        saveLoadSettings.save_state,
+        saveLoadSettings.save_state_on_train_end,
+        
+        # huggingface
         huggingface.huggingface_repo_id,
         huggingface.huggingface_token,
         huggingface.huggingface_repo_type,
@@ -528,6 +561,8 @@ def lora_tab(
         huggingface.save_state_to_huggingface,
         huggingface.resume_from_huggingface,
         huggingface.async_upload,
+        
+        # metadata
         metadata.metadata_author,
         metadata.metadata_description,
         metadata.metadata_license,

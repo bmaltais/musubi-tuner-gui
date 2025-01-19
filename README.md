@@ -4,8 +4,6 @@ GUI for the new musubi-tuner.
 
 Contributions to the GUI code are welcome. This project uses [uv](https://github.com/astral-sh/uv) as the Python package manager to facilitate cross-platform use. The aim is to support Linux and Windows, with potential MacOS support pending contributions.
 
-Work towards a Minimum Viable Product (MVP) will be done in the `dev` branch. The `main` branch will remain empty until there is a consensus on a viable first release.
-
 ## Installation
 
 The installation process will be improved and automated in the future. For now, follow these steps:

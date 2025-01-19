@@ -1,0 +1,14 @@
+additional_parameters = ""
+dynamo_backend = "no"
+dynamo_mode = "default"
+dynamo_use_dynamic = false
+dynamo_use_fullgraph = false
+extra_accelerate_launch_args = ""
+gpu_ids = ""
+main_process_port = 0
+mixed_precision = "fp16"
+multi_gpu = false
+num_cpu_threads_per_process = 2
+num_machines = 1
+num_processes = 1
+save_as_bool = false

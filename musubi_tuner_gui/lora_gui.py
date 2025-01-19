@@ -581,21 +581,21 @@ def lora_tab(
 
     configuration.button_open_config.click(
         gui_actions,
-        inputs=[gr.Textbox(value="open_configuration"), dummy_true, configuration.config_file_name, dummy_headless, dummy_false] + settings_list,
+        inputs=[gr.Textbox(value="open_configuration", visible=False), dummy_true, configuration.config_file_name, dummy_headless, dummy_false] + settings_list,
         outputs=[configuration.config_file_name] + settings_list,
         show_progress=False,
     )
 
     configuration.button_load_config.click(
         gui_actions,
-        inputs=[gr.Textbox(value="open_configuration"), dummy_false, configuration.config_file_name, dummy_headless, dummy_false] + settings_list,
+        inputs=[gr.Textbox(value="open_configuration", visible=False), dummy_false, configuration.config_file_name, dummy_headless, dummy_false] + settings_list,
         outputs=[configuration.config_file_name] + settings_list,
         show_progress=False,
     )
 
     configuration.button_save_config.click(
         gui_actions,
-        inputs=[gr.Textbox(value="save_configuration"), dummy_false, configuration.config_file_name, dummy_headless, dummy_false] + settings_list,
+        inputs=[gr.Textbox(value="save_configuration", visible=False), dummy_false, configuration.config_file_name, dummy_headless, dummy_false] + settings_list,
         outputs=[configuration.config_file_name],
         show_progress=False,
     )
@@ -607,13 +607,13 @@ def lora_tab(
 
     button_print.click(
         gui_actions,
-        inputs=[gr.Textbox(value="train_model"), dummy_false, configuration.config_file_name, dummy_headless, dummy_true] + settings_list,
+        inputs=[gr.Textbox(value="train_model", visible=False), dummy_false, configuration.config_file_name, dummy_headless, dummy_true] + settings_list,
         show_progress=False,
     )
 
     executor.button_run.click(
         gui_actions,
-        inputs=[gr.Textbox(value="train_model"), dummy_false, configuration.config_file_name, dummy_headless, dummy_false] + settings_list,
+        inputs=[gr.Textbox(value="train_model", visible=False), dummy_false, configuration.config_file_name, dummy_headless, dummy_false] + settings_list,
         outputs=[executor.button_run, executor.button_stop_training, run_state],
         show_progress=False,
     )

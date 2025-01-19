@@ -8,6 +8,7 @@ import gradio as gr
 from musubi_tuner_gui.lora_gui import lora_tab
 from musubi_tuner_gui.custom_logging import setup_logging
 from musubi_tuner_gui.class_gui_config import GUIConfig
+import toml
 
 PYTHON = sys.executable
 project_dir = os.path.dirname(os.path.abspath(__file__))
@@ -25,7 +26,7 @@ def initialize_ui_interface(config, headless, release_info, readme_content):
     css = read_file_content("./assets/style.css")
 
     # Create the main Gradio Blocks interface
-    ui_interface = gr.Blocks(css=css, title=f"Kohya_ss GUI {release_info}", theme=gr.themes.Default())
+    ui_interface = gr.Blocks(css=css, title=f"Musubi Tuner GUI {release_info}", theme=gr.themes.Default())
     with ui_interface:
         # Create tabs for different functionalities
         with gr.Tab("LoRA"):
@@ -33,7 +34,7 @@ def initialize_ui_interface(config, headless, release_info, readme_content):
         
         with gr.Tab("About"):
             # About tab to display release information and README content
-            gr.Markdown(f"kohya_ss GUI release {release_info}")
+            gr.Markdown(f"Musubi Tuner GUI {release_info}")
             with gr.Tab("README"):
                 gr.Markdown(readme_content)
 
@@ -48,7 +49,14 @@ def UI(**kwargs):
     log.info(f"headless: {kwargs.get('headless', False)}")
 
     # Load release and README information
-    release_info = read_file_content("./.release")
+    release_info = "Unknown version"
+    try:
+        with open("./pyproject.toml", "r", encoding="utf-8") as f:
+            pyproject_data = toml.load(f)
+            release_info = pyproject_data.get("project", {}).get("version", release_info)
+    except (FileNotFoundError, toml.TomlDecodeError, KeyError) as e:
+        log.error(f"Error loading release information: {e}")
+    
     readme_content = read_file_content("./README.md")
     
     # Load configuration from the specified file

@@ -1292,6 +1292,37 @@ def SaveConfigFile(
 
     with open(file_path, "w", encoding="utf-8") as file:
         toml.dump(variables, file)
+        
+def SaveConfigFileToRun(
+    parameters,
+    file_path: str,
+    exclusion: list = ["file_path", "save_as", "headless", "print_only"],
+) -> None:
+    """
+    Saves the configuration parameters to a TOML file, excluding specified keys.
+
+    This function iterates over a dictionary of parameters, filters out keys listed
+    in the `exclusion` list, and saves the remaining parameters to a TOML file
+    specified by `file_path`.
+
+    Args:
+        parameters (dict): Dictionary containing the configuration parameters.
+        file_path (str): Path to the file where the filtered parameters should be saved.
+        exclusion (list): List of keys to exclude from saving. Defaults to ["file_path", "save_as", "headless", "print_only"].
+    """
+    variables = {
+        name: value
+        for name, value in sorted(parameters, key=lambda x: x[0])
+        if name not in exclusion and value != 0 and value != "" and value is not False
+    }
+
+    folder_path = os.path.dirname(file_path)
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+        log.info(f"Creating folder {folder_path} for the configuration file...")
+
+    with open(file_path, "w", encoding="utf-8") as file:
+        toml.dump(variables, file)
 
 
 def save_to_file(content):

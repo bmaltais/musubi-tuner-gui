@@ -143,6 +143,721 @@ class AdvancedTraining:
                 value=self.config.get("additional_parameters", ""),
             )
             
+        with gr.Row():
+            self.dataset_config = gr.Textbox(
+                label="Dataset Config",
+                placeholder='Path to the dataset config file',
+                value=str(self.config.get("dataset_config", "")),
+            )
+
+        with gr.Row():
+            self.sdpa = gr.Checkbox(
+                label="Use SDPA for CrossAttention",
+                value=self.config.get("sdpa", False),
+            )
+
+        with gr.Row():
+            self.flash_attn = gr.Checkbox(
+                label="FlashAttention",
+                info="Use FlashAttention for CrossAttention",
+                value=self.config.get("flash_attn", False),
+            )
+
+        with gr.Row():
+            self.sage_attn = gr.Checkbox(
+                label="SageAttention",
+                info="Use SageAttention for CrossAttention",
+                value=self.config.get("sage_attn", False),
+            )
+
+        with gr.Row():
+            self.xformers = gr.Checkbox(
+                label="xformers",
+                info="Use xformers for CrossAttention",
+                value=self.config.get("xformers", False),
+            )
+
+        with gr.Row():
+            self.split_attn = gr.Checkbox(
+                label="Split Attention",
+                info="Use Split Attention for CrossAttention",
+                value=self.config.get("split_attn", False),
+            )
+
+        with gr.Row():
+            self.max_train_steps = gr.Number(
+                label="Max Training Steps",
+                info="Maximum number of training steps",
+                value=self.config.get("max_train_steps", 1600),
+                interactive=True,
+                
+            )
+
+        with gr.Row():
+            self.max_train_epochs = gr.Number(
+                label="Max Training Epochs",
+                info='Overrides max_train_steps',
+                value=self.config.get("max_train_epochs", None),
+            )
+
+        with gr.Row():
+            self.max_data_loader_n_workers = gr.Number(
+                label="Max DataLoader Workers",
+                info='Lower values reduce RAM usage and speed up epoch start',
+                value=self.config.get("max_data_loader_n_workers", 8),
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.persistent_data_loader_workers = gr.Checkbox(
+                label="Persistent DataLoader Workers",
+                info='Keep DataLoader workers alive between epochs',
+                value=self.config.get("persistent_data_loader_workers", False),
+            )
+
+        with gr.Row():
+            self.seed = gr.Number(
+                label="Random Seed for Training",
+                info="Optional: set a fixed seed for reproducibility",
+                value=self.config.get("seed", None),
+            )
+
+        with gr.Row():
+            self.gradient_checkpointing = gr.Checkbox(
+                label="Enable Gradient Checkpointing",
+                info="Enable gradient checkpointing for memory savings",
+                value=self.config.get("gradient_checkpointing", False),
+            )
+
+        with gr.Row():
+            self.gradient_accumulation_steps = gr.Number(
+                label="Gradient Accumulation Steps",
+                info="Number of steps to accumulate gradients before backward pass",
+                value=self.config.get("gradient_accumulation_steps", 1),
+                interactive=True,
+            )
+
+        # Already set via accelerate
+        # with gr.Row():
+        #     self.mixed_precision = gr.Dropdown(
+        #         label="Mixed Precision",
+        #         choices=["no", "fp16", "bf16"],
+        #         value=self.config.get("mixed_precision", "no"),
+        #         interactive=True,
+        #     )
+
+        with gr.Row():
+            self.logging_dir = gr.Textbox(
+                label="Logging Directory",
+                placeholder="Directory for TensorBoard logs",
+                value=self.config.get("logging_dir", ""),
+            )
+
+        with gr.Row():
+            self.log_with = gr.Dropdown(
+                label="Logging Tool",
+                info="Select the logging tool to use",
+                choices=["tensorboard", "wandb", "all"],
+                allow_custom_value=True,
+                value=self.config.get("log_with", ""),
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.log_prefix = gr.Textbox(
+                label="Log Directory Prefix",
+                placeholder="Prefix for each log directory",
+                value=self.config.get("log_prefix", ""),
+            )
+
+        with gr.Row():
+            self.log_tracker_name = gr.Textbox(
+                label="Log Tracker Name",
+                placeholder="Name of the tracker used for logging",
+                value=self.config.get("log_tracker_name", ""),
+            )
+
+        with gr.Row():
+            self.wandb_run_name = gr.Textbox(
+                label="WandB Run Name",
+                placeholder="Name of the specific WandB session",
+                value=self.config.get("wandb_run_name", ""),
+            )
+
+        with gr.Row():
+            self.log_tracker_config = gr.Textbox(
+                label="Log Tracker Config",
+                placeholder="Path to the tracker config file for logging",
+                value=self.config.get("log_tracker_config", ""),
+            )
+
+        with gr.Row():
+            self.wandb_api_key = gr.Textbox(
+                label="WandB API Key",
+                placeholder="Optional: Specify WandB API key to log in before training",
+                value=self.config.get("wandb_api_key", ""),
+            )
+
+        with gr.Row():
+            self.log_config = gr.Checkbox(
+                label="Log Training Configuration",
+                info="Log the training configuration to the logging directory",
+                value=self.config.get("log_config", False),
+            )
+
+        with gr.Row():
+            self.ddp_timeout = gr.Number(
+                label="DDP Timeout (minutes)",
+                info="Set DDP timeout in minutes (None for default)",
+                value=self.config.get("ddp_timeout", None),
+            )
+
+        with gr.Row():
+            self.ddp_gradient_as_bucket_view = gr.Checkbox(
+                label="Enable Gradient as Bucket View for DDP",
+                value=self.config.get("ddp_gradient_as_bucket_view", False),
+            )
+
+        with gr.Row():
+            self.ddp_static_graph = gr.Checkbox(
+                label="Enable Static Graph for DDP",
+                value=self.config.get("ddp_static_graph", False),
+            )
+
+        with gr.Row():
+            self.sample_every_n_steps = gr.Number(
+                label="Sample Every N Steps",
+                info="Generate sample images every N steps",
+                value=self.config.get("sample_every_n_steps", None),
+            )
+
+        with gr.Row():
+            self.sample_at_first = gr.Checkbox(
+                label="Sample Before Training",
+                value=self.config.get("sample_at_first", False),
+            )
+
+        with gr.Row():
+            self.sample_every_n_epochs = gr.Number(
+                label="Sample Every N Epochs",
+                info="Generate sample images every N epochs (overrides N steps)",
+                value=self.config.get("sample_every_n_epochs", None),
+            )
+
+        with gr.Row():
+            self.sample_prompts = gr.Textbox(
+                label="Sample Prompts",
+                placeholder="File containing prompts to generate sample images",
+                value=self.config.get("sample_prompts", ""),
+            )
+
+        with gr.Row():
+            self.optimizer_type = gr.Dropdown(
+                label="Optimizer Type",
+                info="Select the optimizer to use",
+                choices=["AdamW", "AdamW8bit", "AdaFactor"],
+                allow_custom_value=True,
+                value=self.config.get("optimizer_type", "AdamW"),
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.optimizer_args = gr.Textbox(
+                label="Optimizer Arguments",
+                placeholder='Additional arguments for optimizer (e.g., "weight_decay=0.01 betas=0.9,0.999")',
+                value=self.config.get("optimizer_args", ""),
+            )
+
+        with gr.Row():
+            self.learning_rate = gr.Number(
+                label="Learning Rate",
+                info="Specify the learning rate (e.g., 2.0e-6)",
+                value=self.config.get("learning_rate", 2.0e-6),
+                interactive=True,
+                step=1e-6,
+            )
+
+        with gr.Row():
+            self.max_grad_norm = gr.Number(
+                label="Max Gradient Norm",
+                info="Maximum gradient norm (0 for no clipping)",
+                value=self.config.get("max_grad_norm", 1.0),
+                interactive=True,
+                step=0.0001,
+            )
+
+        with gr.Row():
+            self.lr_scheduler = gr.Dropdown(
+                label="Learning Rate Scheduler",
+                info="Select the learning rate scheduler to use",
+                choices=["constant", "linear", "cosine", "constant_with_warmup"],
+                allow_custom_value=False,
+                value=self.config.get("lr_scheduler", "constant"),
+                interactive=True,
+            )   
+
+        with gr.Row():
+            self.lr_warmup_steps = gr.Number(
+                label="LR Warmup Steps",
+                info="Number of warmup steps or ratio of train steps (e.g., 0.1 for 10%)",
+                value=self.config.get("lr_warmup_steps", 0),
+                interactive=True,
+                step=0.01,
+                maximum=1,
+            )
+
+        with gr.Row():
+            self.lr_decay_steps = gr.Number(
+                label="LR Decay Steps",
+                info="Number of decay steps or ratio of train steps (e.g., 0.1 for 10%)",
+                value=self.config.get("lr_decay_steps", 0),
+                interactive=True,
+                step=0.01,
+                maximum=1,
+            )
+
+        with gr.Row():
+            self.lr_scheduler_num_cycles = gr.Number(
+                label="LR Scheduler Num Cycles",
+                info="Number of restarts for cosine scheduler with restarts",
+                value=self.config.get("lr_scheduler_num_cycles", 1),
+                interactive=True,
+                minimum=1,
+            )
+
+        with gr.Row():
+            self.lr_scheduler_power = gr.Number(
+                label="LR Scheduler Polynomial Power",
+                info="Polynomial power for polynomial scheduler",
+                value=self.config.get("lr_scheduler_power", 1),
+                step=0.001,
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.lr_scheduler_timescale = gr.Number(
+                label="LR Scheduler Timescale",
+                info="Timescale for inverse sqrt scheduler (defaults to num_warmup_steps)",
+                value=self.config.get("lr_scheduler_timescale", None),
+                step=1,
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.lr_scheduler_min_lr_ratio = gr.Number(
+                label="LR Scheduler Min LR Ratio",
+                info="Minimum LR as a ratio of initial LR for cosine with min LR scheduler",
+                value=self.config.get("lr_scheduler_min_lr_ratio", None),
+                step=0.001,
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.lr_scheduler_type = gr.Textbox(
+                label="LR Scheduler Type",
+                placeholder="Specify custom scheduler module",
+                value=self.config.get("lr_scheduler_type", ""),
+            )
+
+        with gr.Row():
+            self.lr_scheduler_args = gr.Textbox(
+                label="LR Scheduler Arguments",
+                placeholder='Additional arguments for scheduler (e.g., "T_max=100")',
+                value=" ".join(self.config.get("lr_scheduler_args", []) or []),
+            )
+
+        with gr.Row():
+            self.dit = gr.Textbox(
+                label="DiT Checkpoint Path",
+                placeholder="Path to DiT checkpoint",
+                value=self.config.get("dit", ""),
+            )
+
+        with gr.Row():
+            self.dit_dtype = gr.Dropdown(
+                label="DiT Data Type",
+                info="Select the data type for DiT",
+                choices=["float16", "bfloat16"],
+                value=self.config.get("dit_dtype", "bfloat16"),
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.vae = gr.Textbox(
+                label="VAE Checkpoint Path",
+                placeholder="Path to VAE checkpoint",
+                value=self.config.get("vae", ""),
+            )
+
+        with gr.Row():
+            self.vae_dtype = gr.Dropdown(
+                label="VAE Data Type",
+                info="Select the data type for VAE",
+                choices=["float16", "bfloat16"],
+                value=self.config.get("vae_dtype", "float16"),
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.vae_tiling = gr.Checkbox(
+                label="Enable VAE Spatial Tiling",
+                value=self.config.get("vae_tiling", False),
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.vae_chunk_size = gr.Number(
+                label="VAE Chunk Size",
+                info="Chunk size for CausalConv3d in VAE",
+                value=self.config.get("vae_chunk_size", None),
+                step=1,
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.vae_spatial_tile_sample_min_size = gr.Number(
+                label="VAE Spatial Tile Sample Min Size",
+                info="Spatial tile sample min size for VAE (default: 256)",
+                value=self.config.get("vae_spatial_tile_sample_min_size", 256),
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.text_encoder1 = gr.Textbox(
+                label="Text Encoder 1 Directory/file",
+                placeholder="Path to Text Encoder 1 directory or file",
+                value=self.config.get("text_encoder1", ""),
+            )
+
+        with gr.Row():
+            self.text_encoder2 = gr.Textbox(
+                label="Text Encoder 2 Directory/file",
+                placeholder="Path to Text Encoder 2 directory or file",
+                value=self.config.get("text_encoder2", ""),
+            )
+
+        with gr.Row():
+            self.text_encoder_dtype = gr.Dropdown(
+                label="Text Encoder Data Type",
+                info="Select the data type for Text Encoder",
+                choices=["float16", "bfloat16"],
+                value=self.config.get("text_encoder_dtype", "float16"),
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.fp8_llm = gr.Checkbox(
+                label="Use FP8 for LLM",
+                value=self.config.get("fp8_llm", False),
+            )
+
+        with gr.Row():
+            self.fp8_base = gr.Checkbox(
+                label="Use FP8 for Base Model",
+                value=self.config.get("fp8_base", False),
+            )
+
+        with gr.Row():
+            self.blocks_to_swap = gr.Number(
+                label="Blocks to Swap",
+                info="Number of blocks to swap in the model (max XXX)",
+                value=self.config.get("blocks_to_swap", None),
+                step=1,
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.img_in_txt_in_offloading = gr.Checkbox(
+                label="Offload img_in and txt_in to CPU",
+                value=self.config.get("img_in_txt_in_offloading", False),
+            )
+
+        with gr.Row():
+            self.guidance_scale = gr.Number(
+                label="Guidance Scale",
+                info="Embedded classifier-free guidance scale",
+                value=self.config.get("guidance_scale", 1.0),
+                step=0.001,
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.timestep_sampling = gr.Dropdown(
+                label="Timestep Sampling Method",
+                choices=["sigma", "uniform", "sigmoid", "shift"],
+                value=self.config.get("timestep_sampling", "sigma"),
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.discrete_flow_shift = gr.Number(
+                label="Discrete Flow Shift",
+                info="Discrete flow shift for the Euler Discrete Scheduler (default: 1.0)",
+                value=self.config.get("discrete_flow_shift", 1.0),
+                step=0.001,
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.sigmoid_scale = gr.Number(
+                label="Sigmoid Scale",
+                info="Scale factor for sigmoid timestep sampling",
+                value=self.config.get("sigmoid_scale", 1.0),
+                step=0.001,
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.weighting_scheme = gr.Dropdown(
+                label="Weighting Scheme",
+                choices=["logit_normal", "mode", "cosmap", "sigma_sqrt", "none"],
+                value=self.config.get("weighting_scheme", "none"),
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.logit_mean = gr.Number(
+                label="Logit Mean",
+                info="Mean for 'logit_normal' weighting scheme",
+                value=self.config.get("logit_mean", 0.0),
+                step=0.001,
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.logit_std = gr.Number(
+                label="Logit Std",
+                info="Standard deviation for 'logit_normal' weighting scheme",
+                value=self.config.get("logit_std", 1.0),
+                step=0.001,
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.mode_scale = gr.Number(
+                label="Mode Scale",
+                info="Scale of mode weighting scheme",
+                value=self.config.get("mode_scale", 1.29),
+                step=0.001,
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.min_timestep = gr.Number(
+                label="Min Timestep",
+                info="Minimum timestep for training (0-999)",
+                value=self.config.get("min_timestep", 0),
+                step=1,
+                minimum=0,
+                maximum=999,
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.max_timestep = gr.Number(
+                label="Max Timestep",
+                info="Maximum timestep for training (1-1000)",
+                value=self.config.get("max_timestep", 1000),
+                minimum=1,
+                maximum=1000,
+                step=1,
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.show_timesteps = gr.Dropdown(
+                label="Show Timesteps",
+                choices=["image", "console"],
+                allow_custom_value=True,
+                value=self.config.get("show_timesteps", None),
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.no_metadata = gr.Checkbox(
+                label="Do Not Save Metadata",
+                value=self.config.get("no_metadata", False),
+            )
+
+        with gr.Row():
+            self.network_weights = gr.Textbox(
+                label="Network Weights",
+                placeholder="Path to pretrained weights for network",
+                value=self.config.get("network_weights", None),
+            )
+
+        with gr.Row():
+            self.network_module = gr.Textbox(
+                label="Network Module",
+                placeholder="Module of the network to train",
+                value=self.config.get("network_module", None),
+            )
+
+        with gr.Row():
+            self.network_dim = gr.Number(
+                label="Network Dimensions",
+                info="Specify dimensions for the network (depends on the module)",
+                value=self.config.get("network_dim", None),
+                step=1,
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.network_alpha = gr.Number(
+                label="Network Alpha",
+                info="Alpha value for LoRA weight scaling (default: 1)",
+                value=self.config.get("network_alpha", 1),
+                step=1,
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.network_dropout = gr.Number(
+                label="Network Dropout",
+                info="Dropout rate (0 or None for no dropout, 1 drops all neurons)",
+                value=self.config.get("network_dropout", 0),
+                step=0.01,
+                minimum=0,
+                maximum=1,
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.network_args = gr.Textbox(
+                label="Network Arguments",
+                placeholder="Additional network arguments (key=value)",
+                value=self.config.get("network_args", ""),
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.training_comment = gr.Textbox(
+                label="Training Comment",
+                placeholder="Arbitrary comment string to store in metadata",
+                value=self.config.get("training_comment", None),
+            )
+
+        with gr.Row():
+            self.dim_from_weights = gr.Checkbox(
+                label="Determine Dimensions from Network Weights",
+                value=self.config.get("dim_from_weights", False),
+            )
+
+        with gr.Row():
+            self.scale_weight_norms = gr.Number(
+                label="Scale Weight Norms",
+                info="Scaling factor for weights (1 is a good starting point)",
+                value=self.config.get("scale_weight_norms", None),
+                step=0.001,
+                interactive=True,
+                minimum=0,
+            )
+
+        with gr.Row():
+            self.base_weights = gr.Textbox(
+                label="Base Weights",
+                placeholder="Paths to network weights to merge into the model before training",
+                value=self.config.get("base_weights", ""),
+            )
+
+        with gr.Row():
+            self.base_weights_multiplier = gr.Textbox(
+                label="Base Weights Multiplier",
+                placeholder="Multipliers for network weights to merge into the model before training",
+                value=self.config.get("base_weights_multiplier", ""),
+            )
+
+        with gr.Row():
+            self.output_dir = gr.Textbox(
+                label="Output Directory",
+                placeholder="Directory to save the trained model",
+                value=self.config.get("output_dir", None),
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.output_name = gr.Textbox(
+                label="Output Name",
+                placeholder="Base name of the trained model file (excluding extension)",
+                value=self.config.get("output_name", "lora"),
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.resume = gr.Textbox(
+                label="Resume Training State",
+                placeholder="Path to saved state to resume training",
+                value=self.config.get("resume", None),
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.save_every_n_epochs = gr.Number(
+                label="Save Every N Epochs",
+                info="Save a checkpoint every N epochs",
+                value=self.config.get("save_every_n_epochs", None),
+                step=1,
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.save_every_n_steps = gr.Number(
+                label="Save Every N Steps",
+                info="Save a checkpoint every N steps",
+                value=self.config.get("save_every_n_steps", None),
+                interactive=True,
+                step=1,
+            )
+
+        with gr.Row():
+            self.save_last_n_epochs = gr.Number(
+                label="Save Last N Epochs",
+                info="Save only the last N checkpoints when saving every N epochs",
+                value=self.config.get("save_last_n_epochs", None),
+                step=1,
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.save_last_n_epochs_state = gr.Number(
+                label="Save Last N Epochs State",
+                info="Save states of the last N epochs (overrides save_last_n_epochs)",
+                value=self.config.get("save_last_n_epochs_state", None),
+                step=1,
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.save_last_n_steps = gr.Number(
+                label="Save Last N Steps",
+                info="Save checkpoints until N steps elapsed (remove older ones afterward)",
+                value=self.config.get("save_last_n_steps", None),
+                step=1,
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.save_last_n_steps_state = gr.Number(
+                label="Save Last N Steps State",
+                info="Save states until N steps elapsed (overrides save_last_n_steps)",
+                value=self.config.get("save_last_n_steps_state", None),
+                step=1,
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.save_state = gr.Checkbox(
+                label="Save Training State",
+                value=self.config.get("save_state", False),
+            )
+
+        with gr.Row():
+            self.save_state_on_train_end = gr.Checkbox(
+                label="Save State on Train End",
+                value=self.config.get("save_state_on_train_end", False),
+                interactive=True,
+            )
+
         # with gr.Accordion("Scheduled Huber Loss", open=False):
         #     with gr.Row():
         #         self.loss_type = gr.Dropdown(

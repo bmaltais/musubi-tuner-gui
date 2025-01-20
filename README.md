@@ -6,7 +6,7 @@ Contributions to the GUI code are welcome. This project uses [uv](https://github
 
 Work towards a Minimum Viable Product (MVP) will be done in the `dev` branch. The `main` branch will remain empty until there is a consensus on a viable first release.
 
-## Installation
+## Installation (optional, you can skip this section if you prefer to use the provided uv code in the repo)
 
 The installation process will be improved and automated in the future. For now, follow these steps:
 
@@ -39,9 +39,27 @@ $env:Path = "C:\Users\berna\.local\bin;$env:Path"
 ```
 
 ## Starting the GUI
+### With uv installation
 
 ```shell
 git clone --recursive https://github.com/bmaltais/musubi-tuner-gui.git
 cd musubi-tuner-gui
 uv run gui.py
+```
+
+### With repo based uv version
+#### Windows
+
+```shell
+git clone --recursive https://github.com/bmaltais/musubi-tuner-gui.git
+cd musubi-tuner-gui
+.\gui.bat
+```
+
+#### Linux
+
+```shell
+git clone --recursive https://github.com/bmaltais/musubi-tuner-gui.git
+cd musubi-tuner-gui
+./gui.sh
 ```

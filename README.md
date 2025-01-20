@@ -6,6 +6,10 @@ Contributions to the GUI code are welcome. This project uses [uv](https://github
 
 Work towards a Minimum Viable Product (MVP) will be done in the `dev` branch. The `main` branch will remain empty until there is a consensus on a viable first release.
 
+## Documentation about musumi tuner
+
+Have a read of the documentation posted on https://github.com/kohya-ss/musubi-tuner for details about dataset preparation and the accompanying toml file required for training. This only provide a GUI to configure the tuner parameter. Not the dataset configuration file.
+
 ## Installation (optional, you can skip this section if you prefer to use the provided uv code in the repo)
 
 The installation process will be improved and automated in the future. For now, follow these steps:

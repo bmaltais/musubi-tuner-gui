@@ -173,3 +173,5 @@ cython_debug/
 # Other
 *.npz
 test/output
+uv.lock
+musubi_tuner_gui.log

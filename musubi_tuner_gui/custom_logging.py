@@ -19,8 +19,8 @@ def setup_logging(clean=False, debug=False):
         return log
 
     try:
-        if clean and os.path.isfile("setup.log"):
-            os.remove("setup.log")
+        if clean and os.path.isfile("musubi_tuner_gui.log"):
+            os.remove("musubi_tuner_gui.log")
         time.sleep(0.1)  # prevent race condition
     except:
         pass
@@ -29,7 +29,7 @@ def setup_logging(clean=False, debug=False):
         logging.basicConfig(
             level=logging.DEBUG,
             format="%(asctime)s | %(levelname)s | %(pathname)s | %(message)s",
-            filename="setup.log",
+            filename="musubi_tuner_gui.log",
             filemode="a",
             encoding="utf-8",
             force=True,
@@ -38,7 +38,7 @@ def setup_logging(clean=False, debug=False):
         logging.basicConfig(
             level=logging.DEBUG,
             format="%(asctime)s | %(levelname)s | %(pathname)s | %(message)s",
-            filename="setup.log",
+            filename="musubi_tuner_gui.log",
             filemode="a",
             force=True,
         )

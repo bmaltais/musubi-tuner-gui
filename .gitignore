@@ -169,3 +169,9 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Other
+*.npz
+test/output
+uv.lock
+musubi_tuner_gui.log

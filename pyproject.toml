@@ -1,0 +1,13 @@
+[project]
+name = "musubi-tuner-gui"
+version = "0.2.0"
+description = "GUI for musubi-tuner"
+readme = "README.md"
+requires-python = ">=3.10, <3.11"
+dependencies = [
+    "musubi-tuner>=0.1.0",
+    "gradio>=5.0.0",
+]
+
+[tool.uv.sources]
+musubi-tuner = { path = "musubi-tuner" }

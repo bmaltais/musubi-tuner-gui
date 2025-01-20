@@ -1,5 +1,6 @@
 import gradio as gr
 import os
+import subprocess
 import time
 import toml
 
@@ -339,6 +340,121 @@ def train_model(
     run_cmd = [rf"uv", "run", "accelerate", "launch"]
 
     param_dict = dict(parameters)
+    
+    run_cache_latent_cmd = ["uv", "run", "./musubi-tuner/cache_latents.py",
+                            "--dataset_config", str(param_dict.get("dataset_config")),
+                            "--vae", str(param_dict.get("vae"))
+    ]
+    
+    if param_dict.get("vae_dtype"):
+        run_cache_latent_cmd.append("--vae_dtype")
+        run_cache_latent_cmd.append(str(param_dict.get("vae_dtype")))   
+        
+    if param_dict.get("vae_chunk_size"):
+        run_cache_latent_cmd.append("--vae_chunk_size")
+        run_cache_latent_cmd.append(str(param_dict.get("vae_chunk_size")))
+                            
+    if param_dict.get("vae_tiling"):
+        run_cache_latent_cmd.append("--vae_tiling")
+        
+    if param_dict.get("vae_spatial_tile_sample_min_size"):
+        run_cache_latent_cmd.append("--vae_spatial_tile_sample_min_size")
+        run_cache_latent_cmd.append(str(param_dict.get("vae_spatial_tile_sample_min_size")))
+        
+    if param_dict.get("caching_latent_device"):
+        run_cache_latent_cmd.append("--device")
+        run_cache_latent_cmd.append(str(param_dict.get("caching_latent_device")))
+    
+    if param_dict.get("caching_latent_batch_size"):
+        run_cache_latent_cmd.append("--batch_size")
+        run_cache_latent_cmd.append(str(param_dict.get("caching_latent_batch_size")))
+    
+    if param_dict.get("caching_latent_num_workers"):
+        run_cache_latent_cmd.append("--num_workers")
+        run_cache_latent_cmd.append(str(param_dict.get("caching_latent_num_workers")))
+        
+    if param_dict.get("caching_latent_skip_existing"):
+        run_cache_latent_cmd.append("--skip_existing")
+        
+    if param_dict.get("caching_latent_keep_cache"):
+        run_cache_latent_cmd.append("--keep_cache")
+        
+    if param_dict.get("caching_latent_debug_mode"):
+        run_cache_latent_cmd.append("--debug_mode")
+        run_cache_latent_cmd.append(str(param_dict.get("caching_latent_debug_mode")))
+        
+    if param_dict.get("caching_latent_console_width"):
+        run_cache_latent_cmd.append("--console_width")
+        run_cache_latent_cmd.append(str(param_dict.get("caching_latent_console_width")))
+        
+    if param_dict.get("caching_latent_console_back"):
+        run_cache_latent_cmd.append("--console_back")
+        run_cache_latent_cmd.append(str(param_dict.get("caching_latent_console_back")))
+        
+    if param_dict.get("caching_latent_console_num_images"):
+        run_cache_latent_cmd.append("--console_num_images")
+        run_cache_latent_cmd.append(str(param_dict.get("caching_latent_console_num_images")))
+    
+    # Reconstruct the safe command string for display
+    # command_to_run = " ".join(run_cache_latent_cmd)
+    log.info(f"Executing command: {run_cache_latent_cmd}")
+
+    # Execute the command securely
+    log.info("Caching latents...")
+    subprocess.run(run_cache_latent_cmd, env=setup_environment())
+    #subprocess.Popen(run_cache_latent_cmd, setup_environment())
+    log.debug("Command executed.")
+    
+    ######
+    
+    run_cache_teo_cmd = ["uv", "run", "./musubi-tuner/cache_text_encoder_outputs.py",
+                            "--dataset_config", str(param_dict.get("dataset_config"))
+    ]
+    
+    if param_dict.get("caching_teo_text_encoder1"):
+        run_cache_teo_cmd.append("--text_encoder1")
+        run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder1")))   
+        
+    if param_dict.get("caching_teo_text_encoder2"):
+        run_cache_teo_cmd.append("--text_encoder2")
+        run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder2")))
+                            
+    if param_dict.get("caching_teo_fp8_llm"):
+        run_cache_teo_cmd.append("--fp8_llm")
+        
+    if param_dict.get("caching_teo_device"):
+        run_cache_teo_cmd.append("--device")
+        run_cache_teo_cmd.append(str(param_dict.get("caching_teo_device")))
+    
+    if param_dict.get("caching_teo_text_encoder_dtype"):
+        run_cache_teo_cmd.append("--text_encoder_dtype")
+        run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder_dtype")))
+    
+    if param_dict.get("caching_teo_batch_size"):
+        run_cache_teo_cmd.append("--batch_size")
+        run_cache_teo_cmd.append(str(param_dict.get("caching_teo_batch_size")))
+        
+    if param_dict.get("caching_teo_skip_existing"):
+        run_cache_teo_cmd.append("--skip_existing")
+        
+    if param_dict.get("caching_teo__keep_cache"):
+        run_cache_teo_cmd.append("--keep_cache")
+        
+    if param_dict.get("caching_teo_num_workers"):
+        run_cache_teo_cmd.append("--num_workers")
+        run_cache_teo_cmd.append(str(param_dict.get("caching_teo_num_workers")))
+    
+    # Reconstruct the safe command string for display
+    # command_to_run = " ".join(run_cache_teo_cmd)
+    log.info(f"Executing command: {run_cache_teo_cmd}")
+
+    # Execute the command securely
+    log.info("Caching text encoder outputs...")
+    subprocess.run(run_cache_teo_cmd, env=setup_environment())
+    #subprocess.Popen(run_cache_teo_cmd, setup_environment())
+    log.debug("Command executed.")
+    
+    #######
 
     run_cmd = AccelerateLaunch.run_cmd(
         run_cmd=run_cmd,

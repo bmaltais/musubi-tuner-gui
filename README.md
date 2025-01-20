@@ -1,6 +1,6 @@
 # musubi-tuner-gui
 
-GUI for the new musubi-tuner.
+GUI for the new [musubi-tuner](https://github.com/kohya-ss/musubi-tuner).
 
 Contributions to the GUI code are welcome. This project uses [uv](https://github.com/astral-sh/uv) as the Python package manager to facilitate cross-platform use. The aim is to support Linux and Windows, with potential MacOS support pending contributions.
 

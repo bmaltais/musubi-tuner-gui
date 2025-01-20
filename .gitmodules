@@ -1,4 +1,4 @@
 
 [submodule "musubi-tuner"]
 	path = musubi-tuner
-	url = https://github.com/bmaltais/musubi-tuner.git
+	url = https://github.com/kohya-ss/musubi-tuner.git

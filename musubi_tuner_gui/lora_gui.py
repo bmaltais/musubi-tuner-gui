@@ -341,120 +341,121 @@ def train_model(
 
     param_dict = dict(parameters)
     
-    run_cache_latent_cmd = ["uv", "run", "./musubi-tuner/cache_latents.py",
-                            "--dataset_config", str(param_dict.get("dataset_config")),
-                            "--vae", str(param_dict.get("vae"))
-    ]
-    
-    if param_dict.get("vae_dtype"):
-        run_cache_latent_cmd.append("--vae_dtype")
-        run_cache_latent_cmd.append(str(param_dict.get("vae_dtype")))   
+    if not print_only:
+        run_cache_latent_cmd = ["uv", "run", "./musubi-tuner/cache_latents.py",
+                                "--dataset_config", str(param_dict.get("dataset_config")),
+                                "--vae", str(param_dict.get("vae"))
+        ]
         
-    if param_dict.get("vae_chunk_size"):
-        run_cache_latent_cmd.append("--vae_chunk_size")
-        run_cache_latent_cmd.append(str(param_dict.get("vae_chunk_size")))
-                            
-    if param_dict.get("vae_tiling"):
-        run_cache_latent_cmd.append("--vae_tiling")
+        if param_dict.get("vae_dtype"):
+            run_cache_latent_cmd.append("--vae_dtype")
+            run_cache_latent_cmd.append(str(param_dict.get("vae_dtype")))   
+            
+        if param_dict.get("vae_chunk_size"):
+            run_cache_latent_cmd.append("--vae_chunk_size")
+            run_cache_latent_cmd.append(str(param_dict.get("vae_chunk_size")))
+                                
+        if param_dict.get("vae_tiling"):
+            run_cache_latent_cmd.append("--vae_tiling")
+            
+        if param_dict.get("vae_spatial_tile_sample_min_size"):
+            run_cache_latent_cmd.append("--vae_spatial_tile_sample_min_size")
+            run_cache_latent_cmd.append(str(param_dict.get("vae_spatial_tile_sample_min_size")))
+            
+        if param_dict.get("caching_latent_device"):
+            run_cache_latent_cmd.append("--device")
+            run_cache_latent_cmd.append(str(param_dict.get("caching_latent_device")))
         
-    if param_dict.get("vae_spatial_tile_sample_min_size"):
-        run_cache_latent_cmd.append("--vae_spatial_tile_sample_min_size")
-        run_cache_latent_cmd.append(str(param_dict.get("vae_spatial_tile_sample_min_size")))
+        if param_dict.get("caching_latent_batch_size"):
+            run_cache_latent_cmd.append("--batch_size")
+            run_cache_latent_cmd.append(str(param_dict.get("caching_latent_batch_size")))
         
-    if param_dict.get("caching_latent_device"):
-        run_cache_latent_cmd.append("--device")
-        run_cache_latent_cmd.append(str(param_dict.get("caching_latent_device")))
-    
-    if param_dict.get("caching_latent_batch_size"):
-        run_cache_latent_cmd.append("--batch_size")
-        run_cache_latent_cmd.append(str(param_dict.get("caching_latent_batch_size")))
-    
-    if param_dict.get("caching_latent_num_workers"):
-        run_cache_latent_cmd.append("--num_workers")
-        run_cache_latent_cmd.append(str(param_dict.get("caching_latent_num_workers")))
+        if param_dict.get("caching_latent_num_workers"):
+            run_cache_latent_cmd.append("--num_workers")
+            run_cache_latent_cmd.append(str(param_dict.get("caching_latent_num_workers")))
+            
+        if param_dict.get("caching_latent_skip_existing"):
+            run_cache_latent_cmd.append("--skip_existing")
+            
+        if param_dict.get("caching_latent_keep_cache"):
+            run_cache_latent_cmd.append("--keep_cache")
+            
+        if param_dict.get("caching_latent_debug_mode"):
+            run_cache_latent_cmd.append("--debug_mode")
+            run_cache_latent_cmd.append(str(param_dict.get("caching_latent_debug_mode")))
+            
+        if param_dict.get("caching_latent_console_width"):
+            run_cache_latent_cmd.append("--console_width")
+            run_cache_latent_cmd.append(str(param_dict.get("caching_latent_console_width")))
+            
+        if param_dict.get("caching_latent_console_back"):
+            run_cache_latent_cmd.append("--console_back")
+            run_cache_latent_cmd.append(str(param_dict.get("caching_latent_console_back")))
+            
+        if param_dict.get("caching_latent_console_num_images"):
+            run_cache_latent_cmd.append("--console_num_images")
+            run_cache_latent_cmd.append(str(param_dict.get("caching_latent_console_num_images")))
         
-    if param_dict.get("caching_latent_skip_existing"):
-        run_cache_latent_cmd.append("--skip_existing")
-        
-    if param_dict.get("caching_latent_keep_cache"):
-        run_cache_latent_cmd.append("--keep_cache")
-        
-    if param_dict.get("caching_latent_debug_mode"):
-        run_cache_latent_cmd.append("--debug_mode")
-        run_cache_latent_cmd.append(str(param_dict.get("caching_latent_debug_mode")))
-        
-    if param_dict.get("caching_latent_console_width"):
-        run_cache_latent_cmd.append("--console_width")
-        run_cache_latent_cmd.append(str(param_dict.get("caching_latent_console_width")))
-        
-    if param_dict.get("caching_latent_console_back"):
-        run_cache_latent_cmd.append("--console_back")
-        run_cache_latent_cmd.append(str(param_dict.get("caching_latent_console_back")))
-        
-    if param_dict.get("caching_latent_console_num_images"):
-        run_cache_latent_cmd.append("--console_num_images")
-        run_cache_latent_cmd.append(str(param_dict.get("caching_latent_console_num_images")))
-    
-    # Reconstruct the safe command string for display
-    # command_to_run = " ".join(run_cache_latent_cmd)
-    log.info(f"Executing command: {run_cache_latent_cmd}")
+        # Reconstruct the safe command string for display
+        # command_to_run = " ".join(run_cache_latent_cmd)
+        log.info(f"Executing command: {run_cache_latent_cmd}")
 
-    # Execute the command securely
-    log.info("Caching latents...")
-    subprocess.run(run_cache_latent_cmd, env=setup_environment())
-    #subprocess.Popen(run_cache_latent_cmd, setup_environment())
-    log.debug("Command executed.")
-    
-    ######
-    
-    run_cache_teo_cmd = ["uv", "run", "./musubi-tuner/cache_text_encoder_outputs.py",
-                            "--dataset_config", str(param_dict.get("dataset_config"))
-    ]
-    
-    if param_dict.get("caching_teo_text_encoder1"):
-        run_cache_teo_cmd.append("--text_encoder1")
-        run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder1")))   
+        # Execute the command securely
+        log.info("Caching latents...")
+        subprocess.run(run_cache_latent_cmd, env=setup_environment())
+        #subprocess.Popen(run_cache_latent_cmd, setup_environment())
+        log.debug("Command executed.")
         
-    if param_dict.get("caching_teo_text_encoder2"):
-        run_cache_teo_cmd.append("--text_encoder2")
-        run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder2")))
-                            
-    if param_dict.get("caching_teo_fp8_llm"):
-        run_cache_teo_cmd.append("--fp8_llm")
+        ######
         
-    if param_dict.get("caching_teo_device"):
-        run_cache_teo_cmd.append("--device")
-        run_cache_teo_cmd.append(str(param_dict.get("caching_teo_device")))
-    
-    if param_dict.get("caching_teo_text_encoder_dtype"):
-        run_cache_teo_cmd.append("--text_encoder_dtype")
-        run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder_dtype")))
-    
-    if param_dict.get("caching_teo_batch_size"):
-        run_cache_teo_cmd.append("--batch_size")
-        run_cache_teo_cmd.append(str(param_dict.get("caching_teo_batch_size")))
+        run_cache_teo_cmd = ["uv", "run", "./musubi-tuner/cache_text_encoder_outputs.py",
+                                "--dataset_config", str(param_dict.get("dataset_config"))
+        ]
         
-    if param_dict.get("caching_teo_skip_existing"):
-        run_cache_teo_cmd.append("--skip_existing")
+        if param_dict.get("caching_teo_text_encoder1"):
+            run_cache_teo_cmd.append("--text_encoder1")
+            run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder1")))   
+            
+        if param_dict.get("caching_teo_text_encoder2"):
+            run_cache_teo_cmd.append("--text_encoder2")
+            run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder2")))
+                                
+        if param_dict.get("caching_teo_fp8_llm"):
+            run_cache_teo_cmd.append("--fp8_llm")
+            
+        if param_dict.get("caching_teo_device"):
+            run_cache_teo_cmd.append("--device")
+            run_cache_teo_cmd.append(str(param_dict.get("caching_teo_device")))
         
-    if param_dict.get("caching_teo__keep_cache"):
-        run_cache_teo_cmd.append("--keep_cache")
+        if param_dict.get("caching_teo_text_encoder_dtype"):
+            run_cache_teo_cmd.append("--text_encoder_dtype")
+            run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder_dtype")))
         
-    if param_dict.get("caching_teo_num_workers"):
-        run_cache_teo_cmd.append("--num_workers")
-        run_cache_teo_cmd.append(str(param_dict.get("caching_teo_num_workers")))
-    
-    # Reconstruct the safe command string for display
-    # command_to_run = " ".join(run_cache_teo_cmd)
-    log.info(f"Executing command: {run_cache_teo_cmd}")
+        if param_dict.get("caching_teo_batch_size"):
+            run_cache_teo_cmd.append("--batch_size")
+            run_cache_teo_cmd.append(str(param_dict.get("caching_teo_batch_size")))
+            
+        if param_dict.get("caching_teo_skip_existing"):
+            run_cache_teo_cmd.append("--skip_existing")
+            
+        if param_dict.get("caching_teo__keep_cache"):
+            run_cache_teo_cmd.append("--keep_cache")
+            
+        if param_dict.get("caching_teo_num_workers"):
+            run_cache_teo_cmd.append("--num_workers")
+            run_cache_teo_cmd.append(str(param_dict.get("caching_teo_num_workers")))
+        
+        # Reconstruct the safe command string for display
+        # command_to_run = " ".join(run_cache_teo_cmd)
+        log.info(f"Executing command: {run_cache_teo_cmd}")
 
-    # Execute the command securely
-    log.info("Caching text encoder outputs...")
-    subprocess.run(run_cache_teo_cmd, env=setup_environment())
-    #subprocess.Popen(run_cache_teo_cmd, setup_environment())
-    log.debug("Command executed.")
-    
-    #######
+        # Execute the command securely
+        log.info("Caching text encoder outputs...")
+        subprocess.run(run_cache_teo_cmd, env=setup_environment())
+        #subprocess.Popen(run_cache_teo_cmd, setup_environment())
+        log.debug("Command executed.")
+        
+        #######
 
     run_cmd = AccelerateLaunch.run_cmd(
         run_cmd=run_cmd,
@@ -474,44 +475,46 @@ def train_model(
 
     run_cmd.append(rf"{scriptdir}/musubi-tuner/hv_train_network.py")
 
-    if print_only:
-        print_command_and_toml(run_cmd, "")
-    else:
-        # Saving config file for model
-        current_datetime = datetime.now()
-        formatted_datetime = current_datetime.strftime("%Y%m%d-%H%M%S")
-        # config_dir = os.path.dirname(os.path.dirname(train_data_dir))
-        file_path = os.path.join(param_dict.get('output_dir'), f"{param_dict.get('output_name')}_{formatted_datetime}.toml")
+    # Saving config file for model
+    current_datetime = datetime.now()
+    formatted_datetime = current_datetime.strftime("%Y%m%d-%H%M%S")
+    # config_dir = os.path.dirname(os.path.dirname(train_data_dir))
+    file_path = os.path.join(param_dict.get('output_dir'), f"{param_dict.get('output_name')}_{formatted_datetime}.toml")
 
-        log.info(f"Saving training config to {file_path}...")
+    log.info(f"Saving training config to {file_path}...")
 
-        pattern_exclusion = []
-        for key, _ in parameters:
-            if key.startswith('caching_latent_') or key.startswith('caching_teo_'):
-                pattern_exclusion.append(key)
+    pattern_exclusion = []
+    for key, _ in parameters:
+        if key.startswith('caching_latent_') or key.startswith('caching_teo_'):
+            pattern_exclusion.append(key)
 
-        SaveConfigFileToRun(
-            parameters=parameters,
-            file_path=file_path,
-            exclusion=[
-                "file_path",
-                "save_as",
-                "save_as_bool",
-                "headless",
-                "num_cpu_threads_per_process",
-                "num_processes",
-                "num_machines",
-                "multi_gpu",
-                "gpu_ids",
-                "main_process_port",
-                "dynamo_backend",
-                "dynamo_mode",
-                "dynamo_use_fullgraph",
-                "dynamo_use_dynamic",
-                "extra_accelerate_launch_args",
-            ] + pattern_exclusion,
-        )
+    SaveConfigFileToRun(
+        parameters=parameters,
+        file_path=file_path,
+        exclusion=[
+            "file_path",
+            "save_as",
+            "save_as_bool",
+            "headless",
+            "num_cpu_threads_per_process",
+            "num_processes",
+            "num_machines",
+            "multi_gpu",
+            "gpu_ids",
+            "main_process_port",
+            "dynamo_backend",
+            "dynamo_mode",
+            "dynamo_use_fullgraph",
+            "dynamo_use_dynamic",
+            "extra_accelerate_launch_args",
+        ] + pattern_exclusion,
+    )
         
+    if print_only:
+        # log.info(rf"Printing configuration file {file_path}...")
+        with open(file_path, 'r') as file:
+            log.info("\n" + file.read())
+    else:
         run_cmd.append("--config_file")
         run_cmd.append(rf"{file_path}")
 

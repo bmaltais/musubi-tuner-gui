@@ -175,3 +175,4 @@ cython_debug/
 test/output
 uv.lock
 musubi_tuner_gui.log
+logs/

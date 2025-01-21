@@ -1,12 +1,15 @@
 [project]
 name = "musubi-tuner-gui"
-version = "0.2.0"
+version = "0.2.1"
 description = "GUI for musubi-tuner"
 readme = "README.md"
 requires-python = ">=3.10, <3.11"
 dependencies = [
     "musubi-tuner>=0.1.0",
     "gradio>=5.0.0",
+    "tensorboard==2.18.0",
+    "tensorflow==2.18.0",
+    "tensorflow-io-gcs-filesystem>=0.31.0",
 ]
 
 [tool.uv.sources]

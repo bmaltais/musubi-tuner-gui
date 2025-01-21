@@ -15,6 +15,7 @@ from .class_model import Model
 from .class_network import Network
 from .class_optimizer_and_scheduler import OptimizerAndScheduler
 from .class_save_load import SaveLoadSettings
+from .class_tensorboard import TensorboardManager
 from .class_text_encoder_outputs_caching import TextEncoderOutputsCaching
 from .class_training import TrainingSettings
 from .common_gui import (
@@ -63,6 +64,10 @@ def gui_actions(
     dynamo_use_fullgraph,
     dynamo_use_dynamic,
     extra_accelerate_launch_args,
+    
+    # UI variables
+    ui_skip_caching,
+    
     # advanced_training
     additional_parameters,
     dataset_config,
@@ -341,7 +346,9 @@ def train_model(
 
     param_dict = dict(parameters)
     
-    if not print_only:
+    print(rf"UI Skip Caching: {param_dict.get('ui_skip_caching')}")
+    
+    if not print_only or not param_dict.get("ui_skip_caching"):
         run_cache_latent_cmd = ["uv", "run", "./musubi-tuner/cache_latents.py",
                                 "--dataset_config", str(param_dict.get("dataset_config")),
                                 "--vae", str(param_dict.get("vae"))
@@ -561,6 +568,13 @@ def lora_tab(
         model = Model(headless=headless, config=config)
         
     with gr.Accordion("Caching", open=True, elem_classes="samples_background"):
+        with gr.Group():
+            ui_skip_caching = gr.Checkbox(
+                label="Skip caching",
+                info="Skip caching of latent and text encoder outputs",
+                value=config.get("ui_skip_caching", False),
+                interactive=True,
+            )
         with gr.Tab("Latent caching"):
             latentCaching = LatentCaching(headless=headless, config=config)
                 
@@ -590,6 +604,9 @@ def lora_tab(
     global huggingface
     with gr.Accordion("HuggingFace Settings", open=False, elem_classes="huggingface_background"):
         huggingface = HuggingFace(config=config)
+        
+    # Setup gradio tensorboard buttons
+    TensorboardManager(headless=headless, logging_dir=trainingSettings.logging_dir)
 
     settings_list = [
         # accelerate_launch
@@ -605,6 +622,9 @@ def lora_tab(
         accelerate_launch.dynamo_use_fullgraph,
         accelerate_launch.dynamo_use_dynamic,
         accelerate_launch.extra_accelerate_launch_args,
+        
+        # UI variables
+        ui_skip_caching,
         
         # advanced_training
         advanced_training.additional_parameters,

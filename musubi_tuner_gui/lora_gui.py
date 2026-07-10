@@ -815,19 +815,40 @@ def lora_tab(
     dummy_false = gr.Checkbox(value=False, visible=False)
     dummy_headless = gr.Checkbox(value=headless, visible=False)
 
+    gr.Markdown(
+        "Configure and launch a musubi-tuner training run. Sections follow the "
+        "workflow top to bottom:\n\n"
+        "1. **Model** — pick the architecture and its checkpoints.\n"
+        "2. **Caching** — precompute latents and text encoder outputs.\n"
+        "3. **Network**, **Optimizer**, and **Training** — the training recipe.\n"
+        "4. **Save / Load**, **Metadata**, and **HuggingFace** — what gets written out.\n\n"
+        "When ready, use the bar below to print the command or start training."
+    )
+
+    run_state = gr.Textbox(value=train_state_value, visible=False)
+
+    with gr.Row(elem_id="training_actions_bar"):
+        button_print = gr.Button("🖨️ Print training command", scale=1)
+        global executor
+        executor = CommandExecutor(headless=headless)
+
     # Setup Configuration Files Gradio
-    with gr.Accordion("Configuration file Settings", open=False):
+    with gr.Accordion(
+        "⚙️ Configuration File Settings", open=False, elem_classes="advanced_background"
+    ):
         configuration = ConfigurationFile(headless=headless, config=config)
 
     with (
         gr.Accordion(
-            "Accelerate launch Settings", open=False, elem_classes="flux1_background"
+            "🚀 Accelerate Launch Settings",
+            open=False,
+            elem_classes="advanced_background",
         ),
         gr.Column(),
     ):
         accelerate_launch = AccelerateLaunch(config=config)
 
-    with gr.Accordion("Model Settings", open=True, elem_classes="preset_background"):
+    with gr.Accordion("🧠 Model Settings", open=True, elem_classes="preset_background"):
         model = Model(headless=headless, config=config)
         architecture_groups = [
             model.group_dit_vae,
@@ -857,20 +878,20 @@ def lora_tab(
             outputs=architecture_groups,
         )
 
-    with gr.Accordion("Caching", open=True, elem_classes="samples_background"):
-        with gr.Tab("Latent caching"):
+    with gr.Accordion("💾 Caching", open=True, elem_classes="samples_background"):
+        with gr.Tab("🖼️ Latent caching"):
             latentCaching = LatentCaching(headless=headless, config=config)
 
-        with gr.Tab("Text encoder caching"):
+        with gr.Tab("📝 Text encoder caching"):
             teoCaching = TextEncoderOutputsCaching(headless=headless, config=config)
 
     with gr.Accordion(
-        "Save Load Settings", open=True, elem_classes="samples_background"
+        "🕸️ Network Settings", open=True, elem_classes="flux1_rank_layers_background"
     ):
-        saveLoadSettings = SaveLoadSettings(headless=headless, config=config)
+        network = Network(headless=headless, config=config)
 
     with gr.Accordion(
-        "Optimizer and Scheduler Settings",
+        "📉 Optimizer and Scheduler Settings",
         open=True,
         elem_classes="flux1_rank_layers_background",
     ):
@@ -878,22 +899,26 @@ def lora_tab(
             headless=headless, config=config
         )
 
-    with gr.Accordion("Network Settings", open=True, elem_classes="flux1_background"):
-        network = Network(headless=headless, config=config)
-
-    with gr.Accordion("Training Settings", open=True, elem_classes="preset_background"):
+    with gr.Accordion(
+        "🏋️ Training Settings", open=True, elem_classes="flux1_rank_layers_background"
+    ):
         trainingSettings = TrainingSettings(headless=headless, config=config)
 
     with gr.Accordion(
-        "Advanced Settings", open=True, elem_classes="samples_background"
+        "🧪 Advanced Settings", open=True, elem_classes="basic_background"
     ):
         advanced_training = AdvancedTraining(
             headless=headless, training_type="lora", config=config
         )
 
+    with gr.Accordion(
+        "📦 Save / Load Settings", open=True, elem_classes="output_background"
+    ):
+        saveLoadSettings = SaveLoadSettings(headless=headless, config=config)
+
     with (
         gr.Accordion(
-            "Metadata Settings", open=False, elem_classes="flux1_rank_layers_background"
+            "🏷️ Metadata Settings", open=False, elem_classes="output_background"
         ),
         gr.Group(),
     ):
@@ -901,7 +926,7 @@ def lora_tab(
 
     global huggingface
     with gr.Accordion(
-        "HuggingFace Settings", open=False, elem_classes="huggingface_background"
+        "☁️ HuggingFace Settings", open=False, elem_classes="huggingface_background"
     ):
         huggingface = HuggingFace(config=config)
 
@@ -1108,15 +1133,6 @@ def lora_tab(
         trainingSettings.compile_backend,
         trainingSettings.compile_mode,
     ]
-
-    run_state = gr.Textbox(value=train_state_value, visible=False)
-
-    with gr.Column(), gr.Group():
-        with gr.Row():
-            button_print = gr.Button("Print training command")
-
-    global executor
-    executor = CommandExecutor(headless=headless)
 
     configuration.button_open_config.click(
         gui_actions,

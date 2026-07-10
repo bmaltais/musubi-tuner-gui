@@ -1,6 +1,7 @@
 import gradio as gr
 from .class_gui_config import GUIConfig
 from .class_architecture import architecture_choices, DEFAULT_ARCHITECTURE
+from .common_gui import path_field
 
 
 class Model:
@@ -25,12 +26,13 @@ class Model:
                 interactive=True,
             )
 
-        with gr.Row():
-            self.dataset_config = gr.Textbox(
-                label="Dataset Config",
-                placeholder="Path to the dataset config file",
-                value=str(self.config.get("dataset_config", "")),
-            )
+        self.dataset_config = path_field(
+            label="Dataset Config",
+            placeholder="Path to the dataset config file",
+            value=str(self.config.get("dataset_config", "")),
+            default_extension=".toml",
+            extension_name="TOML files (*.toml)",
+        )
 
         self.group_dit_vae = gr.Column(visible=True)
         with self.group_dit_vae:
@@ -114,18 +116,17 @@ class Model:
 
     def _initialize_dit_vae_fields(self) -> None:
         """Fields shared by every architecture that follows the DiT+VAE shape."""
+        self.dit = path_field(
+            label="DiT Checkpoint Path",
+            placeholder="Path to DiT checkpoint",
+            value=self.config.get("dit", ""),
+        )
+        self.vae = path_field(
+            label="VAE Checkpoint Path",
+            placeholder="Path to VAE checkpoint",
+            value=self.config.get("vae", ""),
+        )
         with gr.Row():
-            self.dit = gr.Textbox(
-                label="DiT Checkpoint Path",
-                placeholder="Path to DiT checkpoint",
-                value=self.config.get("dit", ""),
-            )
-
-            self.vae = gr.Textbox(
-                label="VAE Checkpoint Path",
-                placeholder="Path to VAE checkpoint",
-                value=self.config.get("vae", ""),
-            )
             self.vae_dtype = gr.Dropdown(
                 label="VAE Data Type",
                 info="Select the data type for VAE",
@@ -185,18 +186,16 @@ class Model:
 
     def _initialize_dual_text_encoder_fields(self) -> None:
         """Shared by architectures with two text encoder paths (HunyuanVideo, FLUX Kontext)."""
-        with gr.Row():
-            self.text_encoder1 = gr.Textbox(
-                label="Text Encoder 1 Directory/file",
-                placeholder="Path to Text Encoder 1 directory or file",
-                value=self.config.get("text_encoder1", ""),
-            )
-
-            self.text_encoder2 = gr.Textbox(
-                label="Text Encoder 2 Directory/file",
-                placeholder="Path to Text Encoder 2 directory or file",
-                value=self.config.get("text_encoder2", ""),
-            )
+        self.text_encoder1 = path_field(
+            label="Text Encoder 1 Directory/file",
+            placeholder="Path to Text Encoder 1 directory or file",
+            value=self.config.get("text_encoder1", ""),
+        )
+        self.text_encoder2 = path_field(
+            label="Text Encoder 2 Directory/file",
+            placeholder="Path to Text Encoder 2 directory or file",
+            value=self.config.get("text_encoder2", ""),
+        )
 
     def _initialize_fp8_common_fields(self) -> None:
         """fp8_base and fp8_scaled are supported by every architecture seen so
@@ -239,12 +238,6 @@ class Model:
                 interactive=True,
             )
 
-            self.dit_high_noise = gr.Textbox(
-                label="DiT High Noise Checkpoint Path (Wan2.2)",
-                placeholder="Path to the high-noise DiT checkpoint (Wan2.2 only)",
-                value=self.config.get("dit_high_noise", ""),
-            )
-
             self.timestep_boundary = gr.Number(
                 label="Timestep Boundary",
                 info="Timestep boundary for switching between high and low noise models (Wan2.2)",
@@ -252,18 +245,21 @@ class Model:
                 interactive=True,
             )
 
-        with gr.Row():
-            self.t5 = gr.Textbox(
-                label="T5 Checkpoint Path",
-                placeholder="Path to the T5 text encoder checkpoint",
-                value=self.config.get("t5", ""),
-            )
-
-            self.clip = gr.Textbox(
-                label="CLIP Checkpoint Path (Wan2.1 I2V only)",
-                placeholder="Path to the CLIP text encoder checkpoint, required for Wan2.1 I2V",
-                value=self.config.get("clip", ""),
-            )
+        self.dit_high_noise = path_field(
+            label="DiT High Noise Checkpoint Path (Wan2.2)",
+            placeholder="Path to the high-noise DiT checkpoint (Wan2.2 only)",
+            value=self.config.get("dit_high_noise", ""),
+        )
+        self.t5 = path_field(
+            label="T5 Checkpoint Path",
+            placeholder="Path to the T5 text encoder checkpoint",
+            value=self.config.get("t5", ""),
+        )
+        self.clip = path_field(
+            label="CLIP Checkpoint Path (Wan2.1 I2V only)",
+            placeholder="Path to the CLIP text encoder checkpoint, required for Wan2.1 I2V",
+            value=self.config.get("clip", ""),
+        )
 
         with gr.Row():
             self.vae_cache_cpu = gr.Checkbox(
@@ -274,12 +270,11 @@ class Model:
     def _initialize_single_text_encoder_fields(self) -> None:
         """Shared by every architecture with exactly one text encoder path
         (Qwen-Image, Z-Image, FLUX.2, and likely most remaining image archs)."""
-        with gr.Row():
-            self.text_encoder = gr.Textbox(
-                label="Text Encoder Path",
-                placeholder="Path to the text encoder checkpoint",
-                value=self.config.get("text_encoder", ""),
-            )
+        self.text_encoder = path_field(
+            label="Text Encoder Path",
+            placeholder="Path to the text encoder checkpoint",
+            value=self.config.get("text_encoder", ""),
+        )
 
     def _initialize_model_version_fields(self) -> None:
         """Shared by architectures with a model-version selector (Qwen-Image, FLUX.2)."""
@@ -329,12 +324,11 @@ class Model:
     def _initialize_image_encoder_fields(self) -> None:
         """Shared by architectures with an image encoder for i2v
         (HunyuanVideo 1.5, FramePack)."""
-        with gr.Row():
-            self.image_encoder = gr.Textbox(
-                label="Image Encoder Path (i2v)",
-                placeholder="Path to the image encoder checkpoint, required for i2v",
-                value=self.config.get("image_encoder", ""),
-            )
+        self.image_encoder = path_field(
+            label="Image Encoder Path (i2v)",
+            placeholder="Path to the image encoder checkpoint, required for i2v",
+            value=self.config.get("image_encoder", ""),
+        )
 
     def _initialize_hv_1_5_extras_fields(self) -> None:
         """HunyuanVideo 1.5-only model fields (t2v/i2v task, ByT5, VAE patch conv)."""
@@ -347,11 +341,11 @@ class Model:
                 interactive=True,
             )
 
-            self.byt5 = gr.Textbox(
-                label="ByT5 Checkpoint Path",
-                placeholder="Path to the ByT5 text encoder checkpoint",
-                value=self.config.get("byt5", ""),
-            )
+        self.byt5 = path_field(
+            label="ByT5 Checkpoint Path",
+            placeholder="Path to the ByT5 text encoder checkpoint",
+            value=self.config.get("byt5", ""),
+        )
 
         with gr.Row():
             self.vae_enable_patch_conv = gr.Checkbox(
@@ -406,17 +400,16 @@ class Model:
                 value=self.config.get("kandinsky5_task", ""),
             )
 
-            self.text_encoder_clip = gr.Textbox(
-                label="CLIP Text Encoder Path",
-                placeholder="Path to the CLIP text encoder checkpoint",
-                value=self.config.get("text_encoder_clip", ""),
-            )
-
-            self.text_encoder_qwen = gr.Textbox(
-                label="Qwen Text Encoder Path",
-                placeholder="Path to the Qwen text encoder checkpoint",
-                value=self.config.get("text_encoder_qwen", ""),
-            )
+        self.text_encoder_clip = path_field(
+            label="CLIP Text Encoder Path",
+            placeholder="Path to the CLIP text encoder checkpoint",
+            value=self.config.get("text_encoder_clip", ""),
+        )
+        self.text_encoder_qwen = path_field(
+            label="Qwen Text Encoder Path",
+            placeholder="Path to the Qwen text encoder checkpoint",
+            value=self.config.get("text_encoder_qwen", ""),
+        )
 
     def _initialize_hidream_o1_extras_fields(self) -> None:
         """HiDream-O1-only model fields. Has no separate text-encoder
@@ -459,13 +452,13 @@ class Model:
         """Ideogram4-only model fields. log_loss_stats (a debug diagnostics
         flag) is left to Additional Parameters rather than getting a
         dedicated widget."""
-        with gr.Row():
-            self.unconditional_dit = gr.Textbox(
-                label="Unconditional DiT Path",
-                placeholder="Path to the unconditional Ideogram 4 DiT checkpoint",
-                value=self.config.get("unconditional_dit", ""),
-            )
+        self.unconditional_dit = path_field(
+            label="Unconditional DiT Path",
+            placeholder="Path to the unconditional Ideogram 4 DiT checkpoint",
+            value=self.config.get("unconditional_dit", ""),
+        )
 
+        with gr.Row():
             self.sampler_preset = gr.Dropdown(
                 label="Sampler Preset",
                 choices=["V4_DEFAULT_20", "V4_QUALITY_48", "V4_TURBO_12"],
@@ -499,13 +492,13 @@ class Model:
 
     def _initialize_krea2_extras_fields(self) -> None:
         """Krea 2-only model fields."""
-        with gr.Row():
-            self.turbo_dit = gr.Textbox(
-                label="Turbo DiT Path",
-                placeholder="Distilled Turbo DiT checkpoint path (for sample generation)",
-                value=self.config.get("turbo_dit", ""),
-            )
+        self.turbo_dit = path_field(
+            label="Turbo DiT Path",
+            placeholder="Distilled Turbo DiT checkpoint path (for sample generation)",
+            value=self.config.get("turbo_dit", ""),
+        )
 
+        with gr.Row():
             self.turbo_dit_cache = gr.Checkbox(
                 label="Cache Turbo DiT",
                 value=self.config.get("turbo_dit_cache", False),

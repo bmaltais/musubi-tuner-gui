@@ -1,6 +1,7 @@
 import gradio as gr
 import toml
 from .class_gui_config import GUIConfig
+from .common_gui import path_field
 
 
 class Network:
@@ -17,22 +18,22 @@ class Network:
 
     def initialize_ui_components(self) -> None:
         with gr.Row():
-            self.no_metadata = gr.Checkbox(
-                label="Do Not Save Metadata",
-                value=self.config.get("no_metadata", False),
-            )
-
-            self.network_weights = gr.Textbox(
-                label="Network Weights",
-                placeholder="Path to pretrained weights for network",
-                value=self.config.get("network_weights", None),
-            )
-
             self.network_module = gr.Textbox(
                 label="Network Module",
                 placeholder="Module of the network to train",
                 value=self.config.get("network_module", None),
             )
+
+            self.dim_from_weights = gr.Checkbox(
+                label="Determine Dimensions from Network Weights",
+                value=self.config.get("dim_from_weights", False),
+            )
+
+        self.network_weights = path_field(
+            label="Network Weights",
+            placeholder="Path to pretrained weights for network",
+            value=self.config.get("network_weights", None),
+        )
 
         with gr.Row():
             self.network_dim = gr.Number(
@@ -61,27 +62,6 @@ class Network:
                 interactive=True,
             )
 
-        with gr.Row():
-            self.network_args = gr.Textbox(
-                label="Network Arguments",
-                placeholder="Additional network arguments (key=value)",
-                value=self.config.get("network_args", ""),
-                interactive=True,
-            )
-
-        with gr.Row():
-            self.training_comment = gr.Textbox(
-                label="Training Comment",
-                placeholder="Arbitrary comment string to store in metadata",
-                value=self.config.get("training_comment", None),
-            )
-
-        with gr.Row():
-            self.dim_from_weights = gr.Checkbox(
-                label="Determine Dimensions from Network Weights",
-                value=self.config.get("dim_from_weights", False),
-            )
-
             self.scale_weight_norms = gr.Number(
                 label="Scale Weight Norms",
                 info="Scaling factor for weights (1 is a good starting point)",
@@ -92,14 +72,34 @@ class Network:
             )
 
         with gr.Row():
-            self.base_weights = gr.Textbox(
-                label="Base Weights",
-                placeholder="Paths to network weights to merge into the model before training",
-                value=self.config.get("base_weights", ""),
+            self.network_args = gr.Textbox(
+                label="Network Arguments",
+                placeholder="Additional network arguments (key=value)",
+                value=self.config.get("network_args", ""),
+                interactive=True,
             )
 
+        self.base_weights = path_field(
+            label="Base Weights",
+            placeholder="Paths to network weights to merge into the model before training",
+            value=self.config.get("base_weights", ""),
+        )
+
+        with gr.Row():
             self.base_weights_multiplier = gr.Textbox(
                 label="Base Weights Multiplier",
                 placeholder="Multipliers for network weights to merge into the model before training",
                 value=self.config.get("base_weights_multiplier", ""),
+            )
+
+        with gr.Row():
+            self.training_comment = gr.Textbox(
+                label="Training Comment",
+                placeholder="Arbitrary comment string to store in metadata",
+                value=self.config.get("training_comment", None),
+            )
+
+            self.no_metadata = gr.Checkbox(
+                label="Do Not Save Metadata",
+                value=self.config.get("no_metadata", False),
             )

@@ -349,6 +349,62 @@ def get_folder_path(folder_path: str = "") -> str:
         raise RuntimeError(f"Error initializing folder dialog: {e}") from e
 
 
+def path_field(
+    label: str,
+    value=None,
+    placeholder: str = None,
+    info: str = None,
+    is_folder: bool = False,
+    default_extension: str = None,
+    extension_name: str = "Files",
+    scale: int = 4,
+):
+    """
+    Renders a Textbox paired with a "📁 Browse" button that opens a native
+    file/folder dialog and writes the selection back into the Textbox.
+
+    Parameters:
+    - label, value, placeholder, info: passed straight through to the Textbox.
+    - is_folder: use a folder-picker dialog instead of a file-picker.
+    - default_extension, extension_name: file-picker filter (ignored when
+      is_folder is True, or when default_extension is None, which opens an
+      unfiltered "any file" dialog).
+    - scale: relative width of the Textbox versus the Browse button.
+
+    Returns:
+    - gr.Textbox: the path field. The Browse button is wired but not returned,
+      matching how other field helpers in this codebase only expose the
+      value-carrying component.
+    """
+    with gr.Row():
+        textbox = gr.Textbox(
+            label=label,
+            value=value,
+            placeholder=placeholder,
+            info=info,
+            scale=scale,
+        )
+        button = gr.Button("📁 Browse", scale=1, elem_classes="path-field-browse")
+
+    if is_folder:
+        button.click(
+            fn=get_folder_path, inputs=textbox, outputs=textbox, show_progress=False
+        )
+    elif default_extension:
+        button.click(
+            fn=lambda p: get_file_path(p, default_extension, extension_name),
+            inputs=textbox,
+            outputs=textbox,
+            show_progress=False,
+        )
+    else:
+        button.click(
+            fn=get_any_file_path, inputs=textbox, outputs=textbox, show_progress=False
+        )
+
+    return textbox
+
+
 def get_saveasfile_path(
     file_path: str = "",
     defaultextension: str = ".json",

@@ -1,6 +1,7 @@
 import gradio as gr
 import toml
 from .class_gui_config import GUIConfig
+from .common_gui import path_field
 
 
 class TextEncoderOutputsCaching:
@@ -16,19 +17,20 @@ class TextEncoderOutputsCaching:
         self.initialize_ui_components()
 
     def initialize_ui_components(self) -> None:
+        self.caching_teo_text_encoder1 = path_field(
+            label="Text Encoder 1 Directory",
+            placeholder="Path to Text Encoder 1 directory",
+            value=self.config.get("caching_teo_text_encoder1", ""),
+            is_folder=True,
+        )
+        self.caching_teo_text_encoder2 = path_field(
+            label="Text Encoder 2 Directory",
+            placeholder="Path to Text Encoder 2 directory",
+            value=self.config.get("caching_teo_text_encoder2", ""),
+            is_folder=True,
+        )
+
         with gr.Row():
-            self.caching_teo_text_encoder1 = gr.Textbox(
-                label="Text Encoder 1 Directory",
-                placeholder="Path to Text Encoder 1 directory",
-                value=self.config.get("caching_teo_text_encoder1", ""),
-                interactive=True,
-            )
-            self.caching_teo_text_encoder2 = gr.Textbox(
-                label="Text Encoder 2 Directory",
-                placeholder="Path to Text Encoder 2 directory",
-                value=self.config.get("caching_teo_text_encoder2", ""),
-                interactive=True,
-            )
             self.caching_teo_text_encoder_dtype = gr.Dropdown(
                 label="Text Encoder Data Type",
                 choices=["float16", "bfloat16"],

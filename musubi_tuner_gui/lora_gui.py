@@ -15,6 +15,7 @@ from .class_model import Model
 from .class_network import Network
 from .class_optimizer_and_scheduler import OptimizerAndScheduler
 from .class_save_load import SaveLoadSettings
+from .class_tensorboard import TensorboardManager
 from .class_text_encoder_outputs_caching import TextEncoderOutputsCaching
 from .class_training import TrainingSettings
 from .common_gui import (
@@ -677,8 +678,49 @@ def train_model(
 
     run_cmd.append(rf"{scriptdir}/musubi-tuner/{arch.train_script}")
 
+    # Saving config file for model
+    current_datetime = datetime.now()
+    formatted_datetime = current_datetime.strftime("%Y%m%d-%H%M%S")
+    # config_dir = os.path.dirname(os.path.dirname(train_data_dir))
+    file_path = os.path.join(
+        param_dict.get("output_dir"),
+        f"{param_dict.get('output_name')}_{formatted_datetime}.toml",
+    )
+
+    log.info(f"Saving training config to {file_path}...")
+
+    pattern_exclusion = []
+    for key, _ in parameters:
+        if key.startswith("caching_latent_") or key.startswith("caching_teo_"):
+            pattern_exclusion.append(key)
+
+    SaveConfigFileToRun(
+        parameters=parameters,
+        file_path=file_path,
+        exclusion=[
+            "file_path",
+            "save_as",
+            "save_as_bool",
+            "headless",
+            "num_cpu_threads_per_process",
+            "num_processes",
+            "num_machines",
+            "multi_gpu",
+            "gpu_ids",
+            "main_process_port",
+            "dynamo_backend",
+            "dynamo_mode",
+            "dynamo_use_fullgraph",
+            "dynamo_use_dynamic",
+            "extra_accelerate_launch_args",
+        ]
+        + pattern_exclusion,
+    )
+
     if print_only:
-        print_command_and_toml(run_cmd, "")
+        # log.info(rf"Printing configuration file {file_path}...")
+        with open(file_path, "r") as file:
+            log.info("\n" + file.read())
     else:
         # Saving config file for model
         current_datetime = datetime.now()
@@ -929,6 +971,9 @@ def lora_tab(
         "☁️ HuggingFace Settings", open=False, elem_classes="huggingface_background"
     ):
         huggingface = HuggingFace(config=config)
+
+    # Setup gradio tensorboard buttons
+    TensorboardManager(headless=headless, logging_dir=trainingSettings.logging_dir)
 
     settings_list = [
         # accelerate_launch

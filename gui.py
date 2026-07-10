@@ -1,8 +1,9 @@
 import os
 import sys
 import argparse
-import subprocess
 import contextlib
+import logging
+import toml
 import gradio as gr
 
 from musubi_tuner_gui.lora_gui import lora_tab
@@ -12,8 +13,12 @@ from musubi_tuner_gui.settings_gui import settings_tab
 from musubi_tuner_gui.dataset_config_gui import dataset_config_tab
 import toml
 
+# Constants
 PYTHON = sys.executable
-project_dir = os.path.dirname(os.path.abspath(__file__))
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+CSS_FILE_PATH = "./assets/style.css"
+PYPROJECT_FILE_PATH = "./pyproject.toml"
+README_FILE_PATH = "./README.md"
 
 
 # Function to read file content, suppressing any FileNotFoundError
@@ -31,7 +36,6 @@ def initialize_ui_interface(
     # Create the main Gradio Blocks interface
     ui_interface = gr.Blocks(title=f"Musubi Tuner GUI {release_info}")
     with ui_interface:
-        # Create tabs for different functionalities
         with gr.Tab("Musubi Tuner"):
             training_dataset_config_component = lora_tab(
                 headless=headless, config=config
@@ -49,26 +53,23 @@ def initialize_ui_interface(
             settings_tab(config=config, config_file_path=config_file_path)
 
         with gr.Tab("About"):
-            # About tab to display release information and README content
             gr.Markdown(f"Musubi Tuner GUI {release_info}")
             with gr.Tab("README"):
                 gr.Markdown(readme_content)
-
-        # Display release information in a div element
+        
         gr.Markdown(f"<div class='ver-class'>{release_info}</div>")
-
+    
     return ui_interface
 
 
 # Function to configure and launch the UI
 def UI(**kwargs):
-    # Add custom JavaScript if specified
+    """Configure and launch the UI."""
     log.info(f"headless: {kwargs.get('headless', False)}")
 
-    # Load release and README information
     release_info = "Unknown version"
     try:
-        with open("./pyproject.toml", "r", encoding="utf-8") as f:
+        with open(PYPROJECT_FILE_PATH, "r", encoding="utf-8") as f:
             pyproject_data = toml.load(f)
             release_info = pyproject_data.get("project", {}).get(
                 "version", release_info
@@ -105,7 +106,6 @@ def UI(**kwargs):
         readme_content,
     )
 
-    # Construct launch parameters using dictionary comprehension
     launch_params = {
         "server_name": kwargs.get("listen"),
         "auth": (
@@ -129,8 +129,6 @@ def UI(**kwargs):
 
     # This line filters out any key-value pairs from `launch_params` where the value is `None`, ensuring only valid parameters are passed to the `launch` function.
     launch_params = {k: v for k, v in launch_params.items() if v is not None}
-
-    # Launch the Gradio interface with the specified parameters
     ui_interface.launch(**launch_params)
 
 
@@ -196,11 +194,8 @@ def initialize_arg_parser():
 
 
 if __name__ == "__main__":
-    # Initialize argument parser and parse arguments
     parser = initialize_arg_parser()
     args = parser.parse_args()
-
-    # Set up logging based on the debug flag
     log = setup_logging(debug=args.debug)
 
     # Launch the UI with the provided arguments

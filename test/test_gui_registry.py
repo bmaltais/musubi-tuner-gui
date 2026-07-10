@@ -41,6 +41,7 @@ ALL_GROUP_NAMES = {
     "image_encoder",
     "hv_1_5_extras",
     "framepack_extras",
+    "kandinsky5_extras",
     "perf",
     "flow_matching",
 }
@@ -107,6 +108,7 @@ def test_apply_architecture_visibility_matches_model_field_groups(key, spec):
         "image_encoder",
         "hv_1_5_extras",
         "framepack_extras",
+        "kandinsky5_extras",
         "perf",
         "flow_matching",
     ]
@@ -152,6 +154,9 @@ def test_gui_actions_print_only_emits_correct_train_script(key, spec, capsys):
         "task": "t2v-14B",
         "text_encoder": "fake/text_encoder.safetensors",
         "model_version": "original",
+        "kandinsky5_task": "t2v",
+        "text_encoder_clip": "fake/clip_te.safetensors",
+        "text_encoder_qwen": "fake/qwen_te.safetensors",
         "network_module": "networks.lora",
         "output_dir": "test/output",
         "output_name": "test_lora",

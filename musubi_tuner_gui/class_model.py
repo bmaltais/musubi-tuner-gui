@@ -88,6 +88,10 @@ class Model:
         with self.group_framepack_extras:
             self._initialize_framepack_extras_fields()
 
+        self.group_kandinsky5_extras = gr.Group(visible=True)
+        with self.group_kandinsky5_extras:
+            self._initialize_kandinsky5_extras_fields()
+
         self.group_perf = gr.Group(visible=True)
         with self.group_perf:
             self._initialize_perf_fields()
@@ -373,6 +377,33 @@ class Model:
             self.one_frame = gr.Checkbox(
                 label="One Frame Training",
                 value=self.config.get("one_frame", False),
+            )
+
+    def _initialize_kandinsky5_extras_fields(self) -> None:
+        """Kandinsky 5-only model fields. --task is a required free-form
+        string upstream (no fixed choices), unlike Wan/HunyuanVideo 1.5's
+        --task enums, so it keeps its own field name rather than sharing
+        theirs; more esoteric nabla-attention tuning flags (nabla_P,
+        nabla_wH/wT/wW, nabla_method, etc.) are left to the existing
+        Additional Parameters passthrough rather than getting dedicated
+        widgets."""
+        with gr.Row():
+            self.kandinsky5_task = gr.Textbox(
+                label="Task",
+                placeholder="Required task identifier, see musubi-tuner docs",
+                value=self.config.get("kandinsky5_task", ""),
+            )
+
+            self.text_encoder_clip = gr.Textbox(
+                label="CLIP Text Encoder Path",
+                placeholder="Path to the CLIP text encoder checkpoint",
+                value=self.config.get("text_encoder_clip", ""),
+            )
+
+            self.text_encoder_qwen = gr.Textbox(
+                label="Qwen Text Encoder Path",
+                placeholder="Path to the Qwen text encoder checkpoint",
+                value=self.config.get("text_encoder_qwen", ""),
             )
 
     def _initialize_perf_fields(self) -> None:

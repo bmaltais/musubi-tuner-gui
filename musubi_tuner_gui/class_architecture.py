@@ -185,6 +185,22 @@ REGISTRY = {
             "one_frame",
         ],
     ),
+    "kandinsky5": ArchitectureSpec(
+        key="kandinsky5",
+        label="Kandinsky 5",
+        train_script="kandinsky5_train_network.py",
+        cache_latents_script="kandinsky5_cache_latents.py",
+        cache_teo_script="kandinsky5_cache_text_encoder_outputs.py",
+        model_field_groups=[
+            "dit_vae",
+            "kandinsky5_extras",
+            "fp8_common",
+            "flow_matching",
+            "perf",
+        ],
+        unsupported_shared_args=set(),
+        extra_args=["kandinsky5_task", "text_encoder_clip", "text_encoder_qwen"],
+    ),
 }
 
 DEFAULT_ARCHITECTURE = "hunyuanvideo"

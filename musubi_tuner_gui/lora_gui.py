@@ -204,6 +204,9 @@ FIELD_NAMES = [
     "f1",
     "bulk_decode",
     "one_frame",
+    "kandinsky5_task",
+    "text_encoder_clip",
+    "text_encoder_qwen",
 ]
 
 
@@ -541,6 +544,14 @@ def train_model(
 
         if param_dict.get("fp8_vl"):
             run_cache_teo_cmd.append("--fp8_vl")
+    elif arch.key == "kandinsky5":
+        if param_dict.get("text_encoder_clip"):
+            run_cache_teo_cmd.append("--text_encoder_clip")
+            run_cache_teo_cmd.append(str(param_dict.get("text_encoder_clip")))
+
+        if param_dict.get("text_encoder_qwen"):
+            run_cache_teo_cmd.append("--text_encoder_qwen")
+            run_cache_teo_cmd.append(str(param_dict.get("text_encoder_qwen")))
     else:
         if param_dict.get("caching_teo_text_encoder1"):
             run_cache_teo_cmd.append("--text_encoder1")
@@ -565,6 +576,7 @@ def train_model(
         "flux_kontext",
         "hv_1_5",
         "framepack",
+        "kandinsky5",
     ) and param_dict.get("caching_teo_text_encoder_dtype"):
         run_cache_teo_cmd.append("--text_encoder_dtype")
         run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder_dtype")))
@@ -629,18 +641,21 @@ def train_model(
             if key.startswith("caching_latent_") or key.startswith("caching_teo_"):
                 pattern_exclusion.append(key)
 
-        # Wan and HunyuanVideo 1.5 each have their own "--task" widget (different
-        # choices), so the GUI keeps them as distinct fields ("task"/"hv15_task")
-        # but the trainer's TOML key must always be literally "task".
+        # Wan, HunyuanVideo 1.5, and Kandinsky 5 each have their own "--task"
+        # widget (different choices/shape), so the GUI keeps them as distinct
+        # fields ("task"/"hv15_task"/"kandinsky5_task") but the trainer's TOML
+        # key must always be literally "task".
         training_parameters = [
             (key, value)
             for key, value in parameters
-            if key not in ("task", "hv15_task")
+            if key not in ("task", "hv15_task", "kandinsky5_task")
         ]
         if arch.key == "wan":
             training_parameters.append(("task", param_dict.get("task")))
         elif arch.key == "hv_1_5":
             training_parameters.append(("task", param_dict.get("hv15_task")))
+        elif arch.key == "kandinsky5":
+            training_parameters.append(("task", param_dict.get("kandinsky5_task")))
 
         SaveConfigFileToRun(
             parameters=training_parameters,
@@ -715,6 +730,7 @@ def apply_architecture(architecture_key):
         gr.Group(visible="image_encoder" in spec.model_field_groups),
         gr.Group(visible="hv_1_5_extras" in spec.model_field_groups),
         gr.Group(visible="framepack_extras" in spec.model_field_groups),
+        gr.Group(visible="kandinsky5_extras" in spec.model_field_groups),
         gr.Group(visible="perf" in spec.model_field_groups),
         gr.Group(visible="flow_matching" in spec.model_field_groups),
     )
@@ -760,6 +776,7 @@ def lora_tab(
                 model.group_image_encoder,
                 model.group_hv_1_5_extras,
                 model.group_framepack_extras,
+                model.group_kandinsky5_extras,
                 model.group_perf,
                 model.group_flow_matching,
             ],
@@ -988,6 +1005,10 @@ def lora_tab(
         model.f1,
         model.bulk_decode,
         model.one_frame,
+        # kandinsky5
+        model.kandinsky5_task,
+        model.text_encoder_clip,
+        model.text_encoder_qwen,
     ]
 
     run_state = gr.Textbox(value=train_state_value, visible=False)

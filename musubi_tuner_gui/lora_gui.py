@@ -181,6 +181,14 @@ FIELD_NAMES = [
     "metadata_tags",
     "metadata_title",
     "architecture",
+    "task",
+    "dit_high_noise",
+    "timestep_boundary",
+    "t5",
+    "clip",
+    "fp8_scaled",
+    "fp8_t5",
+    "vae_cache_cpu",
 ]
 
 
@@ -410,6 +418,13 @@ def train_model(
             str(param_dict.get("caching_latent_console_num_images"))
         )
 
+    if arch.key == "wan":
+        if param_dict.get("clip"):
+            run_cache_latent_cmd.append("--clip")
+            run_cache_latent_cmd.append(str(param_dict.get("clip")))
+        if "i2v" in str(param_dict.get("task", "")):
+            run_cache_latent_cmd.append("--i2v")
+
     # Reconstruct the safe command string for display
     log.info(f"Executing command: {run_cache_latent_cmd}")
 
@@ -428,22 +443,30 @@ def train_model(
         str(param_dict.get("dataset_config")),
     ]
 
-    if param_dict.get("caching_teo_text_encoder1"):
-        run_cache_teo_cmd.append("--text_encoder1")
-        run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder1")))
+    if arch.key == "wan":
+        if param_dict.get("t5"):
+            run_cache_teo_cmd.append("--t5")
+            run_cache_teo_cmd.append(str(param_dict.get("t5")))
 
-    if param_dict.get("caching_teo_text_encoder2"):
-        run_cache_teo_cmd.append("--text_encoder2")
-        run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder2")))
+        if param_dict.get("fp8_t5"):
+            run_cache_teo_cmd.append("--fp8_t5")
+    else:
+        if param_dict.get("caching_teo_text_encoder1"):
+            run_cache_teo_cmd.append("--text_encoder1")
+            run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder1")))
 
-    if param_dict.get("caching_teo_fp8_llm"):
-        run_cache_teo_cmd.append("--fp8_llm")
+        if param_dict.get("caching_teo_text_encoder2"):
+            run_cache_teo_cmd.append("--text_encoder2")
+            run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder2")))
+
+        if param_dict.get("caching_teo_fp8_llm"):
+            run_cache_teo_cmd.append("--fp8_llm")
 
     if param_dict.get("caching_teo_device"):
         run_cache_teo_cmd.append("--device")
         run_cache_teo_cmd.append(str(param_dict.get("caching_teo_device")))
 
-    if param_dict.get("caching_teo_text_encoder_dtype"):
+    if arch.key != "wan" and param_dict.get("caching_teo_text_encoder_dtype"):
         run_cache_teo_cmd.append("--text_encoder_dtype")
         run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder_dtype")))
 
@@ -566,7 +589,9 @@ def apply_architecture(architecture_key):
     """
     spec = get_architecture(architecture_key)
     return (
-        gr.Group(visible="dit_vae_te" in spec.model_field_groups),
+        gr.Group(visible="dit_vae" in spec.model_field_groups),
+        gr.Group(visible="hv_extras" in spec.model_field_groups),
+        gr.Group(visible="wan_extras" in spec.model_field_groups),
         gr.Group(visible="perf" in spec.model_field_groups),
         gr.Group(visible="flow_matching" in spec.model_field_groups),
     )
@@ -598,7 +623,9 @@ def lora_tab(
             fn=apply_architecture,
             inputs=[model.architecture],
             outputs=[
-                model.group_dit_vae_te,
+                model.group_dit_vae,
+                model.group_hv_extras,
+                model.group_wan_extras,
                 model.group_perf,
                 model.group_flow_matching,
             ],
@@ -799,6 +826,15 @@ def lora_tab(
         metadata.metadata_title,
         # architecture
         model.architecture,
+        # wan
+        model.task,
+        model.dit_high_noise,
+        model.timestep_boundary,
+        model.t5,
+        model.clip,
+        model.fp8_scaled,
+        model.fp8_t5,
+        model.vae_cache_cpu,
     ]
 
     run_state = gr.Textbox(value=train_state_value, visible=False)

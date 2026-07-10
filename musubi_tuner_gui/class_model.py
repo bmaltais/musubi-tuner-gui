@@ -32,9 +32,17 @@ class Model:
                 value=str(self.config.get("dataset_config", "")),
             )
 
-        self.group_dit_vae_te = gr.Group(visible=True)
-        with self.group_dit_vae_te:
-            self._initialize_dit_vae_te_fields()
+        self.group_dit_vae = gr.Group(visible=True)
+        with self.group_dit_vae:
+            self._initialize_dit_vae_fields()
+
+        self.group_hv_extras = gr.Group(visible=True)
+        with self.group_hv_extras:
+            self._initialize_hv_extras_fields()
+
+        self.group_wan_extras = gr.Group(visible=True)
+        with self.group_wan_extras:
+            self._initialize_wan_extras_fields()
 
         self.group_perf = gr.Group(visible=True)
         with self.group_perf:
@@ -44,7 +52,8 @@ class Model:
         with self.group_flow_matching:
             self._initialize_flow_matching_fields()
 
-    def _initialize_dit_vae_te_fields(self) -> None:
+    def _initialize_dit_vae_fields(self) -> None:
+        """Fields shared by every architecture that follows the DiT+VAE shape."""
         with gr.Row():
             self.dit = gr.Textbox(
                 label="DiT Checkpoint Path",
@@ -52,15 +61,6 @@ class Model:
                 value=self.config.get("dit", ""),
             )
 
-            self.dit_dtype = gr.Dropdown(
-                label="DiT Data Type",
-                info="Select the data type for DiT",
-                choices=["float16", "bfloat16"],
-                value=self.config.get("dit_dtype", "bfloat16"),
-                interactive=True,
-            )
-
-        with gr.Row():
             self.vae = gr.Textbox(
                 label="VAE Checkpoint Path",
                 placeholder="Path to VAE checkpoint",
@@ -71,6 +71,17 @@ class Model:
                 info="Select the data type for VAE",
                 choices=["float16", "bfloat16"],
                 value=self.config.get("vae_dtype", "float16"),
+                interactive=True,
+            )
+
+    def _initialize_hv_extras_fields(self) -> None:
+        """HunyuanVideo-only model fields (dual text encoder, VAE tiling, fp8)."""
+        with gr.Row():
+            self.dit_dtype = gr.Dropdown(
+                label="DiT Data Type",
+                info="Select the data type for DiT",
+                choices=["float16", "bfloat16"],
+                value=self.config.get("dit_dtype", "bfloat16"),
                 interactive=True,
             )
 
@@ -126,6 +137,70 @@ class Model:
             self.fp8_base = gr.Checkbox(
                 label="Use FP8 for Base Model",
                 value=self.config.get("fp8_base", False),
+            )
+
+    def _initialize_wan_extras_fields(self) -> None:
+        """Wan 2.1/2.2-only model fields (task selector, T5/CLIP, dual DiT)."""
+        with gr.Row():
+            self.task = gr.Dropdown(
+                label="Wan Task",
+                info="The Wan task to run",
+                choices=[
+                    "t2v-14B",
+                    "t2v-1.3B",
+                    "i2v-14B",
+                    "t2i-14B",
+                    "flf2v-14B",
+                    "t2v-1.3B-FC",
+                    "t2v-14B-FC",
+                    "i2v-14B-FC",
+                    "i2v-A14B",
+                    "t2v-A14B",
+                ],
+                value=self.config.get("task", "t2v-14B"),
+                interactive=True,
+            )
+
+            self.dit_high_noise = gr.Textbox(
+                label="DiT High Noise Checkpoint Path (Wan2.2)",
+                placeholder="Path to the high-noise DiT checkpoint (Wan2.2 only)",
+                value=self.config.get("dit_high_noise", ""),
+            )
+
+            self.timestep_boundary = gr.Number(
+                label="Timestep Boundary",
+                info="Timestep boundary for switching between high and low noise models (Wan2.2)",
+                value=self.config.get("timestep_boundary", None),
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.t5 = gr.Textbox(
+                label="T5 Checkpoint Path",
+                placeholder="Path to the T5 text encoder checkpoint",
+                value=self.config.get("t5", ""),
+            )
+
+            self.clip = gr.Textbox(
+                label="CLIP Checkpoint Path (Wan2.1 I2V only)",
+                placeholder="Path to the CLIP text encoder checkpoint, required for Wan2.1 I2V",
+                value=self.config.get("clip", ""),
+            )
+
+        with gr.Row():
+            self.fp8_scaled = gr.Checkbox(
+                label="Use scaled FP8 for DiT",
+                value=self.config.get("fp8_scaled", False),
+            )
+
+            self.fp8_t5 = gr.Checkbox(
+                label="Use FP8 for T5",
+                value=self.config.get("fp8_t5", False),
+            )
+
+            self.vae_cache_cpu = gr.Checkbox(
+                label="Cache VAE features on CPU",
+                value=self.config.get("vae_cache_cpu", False),
             )
 
     def _initialize_perf_fields(self) -> None:

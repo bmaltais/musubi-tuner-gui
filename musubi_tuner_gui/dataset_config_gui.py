@@ -280,6 +280,19 @@ def _format_validation(messages: list) -> str:
     return "\n".join(messages)
 
 
+def _status_text(selected_index, datasets: list) -> str:
+    if selected_index is None or not (0 <= selected_index < len(datasets)):
+        return (
+            "**No dataset selected.** Pick a *Dataset type* below and click **Browse** next to "
+            "*Source path* to start one from an existing folder/file, or click **Add image dataset** "
+            "/ **Add video dataset** for a blank row."
+        )
+    return (
+        f"**Editing dataset #{selected_index}** of {len(datasets)}. Fill in the fields below, then "
+        "click **Apply changes** to save them into this row (Save/Save as writes the whole list to disk)."
+    )
+
+
 # ---------------------------------------------------------------------------
 # Tab
 # ---------------------------------------------------------------------------
@@ -294,7 +307,15 @@ def dataset_config_tab(
     gr.Markdown(
         "Create, open, edit, validate, and save a musubi-tuner dataset TOML file. "
         "Comments in hand-written files are not preserved on save; unknown/advanced "
-        "keys are preserved untouched."
+        "keys are preserved untouched.\n\n"
+        "**How to build a dataset from scratch:**\n"
+        "1. Set defaults in **General** below (they apply to every dataset unless overridden per-dataset).\n"
+        "2. Pick a *Dataset type* under **Selected dataset**, then click **Browse** next to *Source path* "
+        "and choose your image/video folder (or jsonl file) — this creates a new row in **Datasets** for you.\n"
+        "3. Fill in the rest of the fields for that dataset (cache directory, caption extension, etc.), then click "
+        "**Apply changes** to save them into the row.\n"
+        "4. Repeat step 2-3 for more datasets, or click a row in the **Datasets** table to switch which one you're editing.\n"
+        "5. Check **Validation** — ERRORs block saving, WARNINGs don't — then click **Save** or **Save as**."
     )
 
     datasets_state = gr.State([])
@@ -349,6 +370,7 @@ def dataset_config_tab(
     )
 
     gr.Markdown("### Selected dataset")
+    status_markdown = gr.Markdown(_status_text(None, []))
     dtype_radio = gr.Radio(
         label="Dataset type",
         choices=DATASET_TYPE_CHOICES,
@@ -399,7 +421,7 @@ def dataset_config_tab(
 
     unknown_keys_note = gr.Markdown("")
 
-    button_apply = gr.Button("Apply changes")
+    button_apply = gr.Button("Apply changes to selected dataset", variant="primary")
 
     validation_panel = gr.Textbox(label="Validation", interactive=False, lines=6)
 
@@ -439,13 +461,15 @@ def dataset_config_tab(
     def on_select_row(datasets, evt: gr.SelectData):
         idx = evt.index[0] if evt.index is not None else None
         if idx is None or not (0 <= idx < len(datasets)):
-            return (None,) + _empty_editor_values()
-        return (idx,) + _dataset_to_editor_values(datasets[idx])
+            return (None, _status_text(None, datasets)) + _empty_editor_values()
+        return (idx, _status_text(idx, datasets)) + _dataset_to_editor_values(
+            datasets[idx]
+        )
 
     datasets_table.select(
         fn=on_select_row,
         inputs=[datasets_state],
-        outputs=[selected_index_state] + detail_editor_widgets,
+        outputs=[selected_index_state, status_markdown] + detail_editor_widgets,
     )
 
     def add_dataset(datasets, is_video):
@@ -456,18 +480,19 @@ def dataset_config_tab(
             datasets,
             _dataset_summary_rows(datasets),
             idx,
+            _status_text(idx, datasets),
         ) + _dataset_to_editor_values(ds)
 
     button_add_image.click(
         fn=lambda datasets: add_dataset(datasets, False),
         inputs=[datasets_state],
-        outputs=[datasets_state, datasets_table, selected_index_state]
+        outputs=[datasets_state, datasets_table, selected_index_state, status_markdown]
         + detail_editor_widgets,
     )
     button_add_video.click(
         fn=lambda datasets: add_dataset(datasets, True),
         inputs=[datasets_state],
-        outputs=[datasets_state, datasets_table, selected_index_state]
+        outputs=[datasets_state, datasets_table, selected_index_state, status_markdown]
         + detail_editor_widgets,
     )
 
@@ -483,6 +508,7 @@ def dataset_config_tab(
                 datasets,
                 _dataset_summary_rows(datasets),
                 fallback_idx,
+                _status_text(fallback_idx, datasets),
             ) + editor_vals
         ds = dict(datasets[selected_index])
         datasets = list(datasets) + [ds]
@@ -491,12 +517,13 @@ def dataset_config_tab(
             datasets,
             _dataset_summary_rows(datasets),
             idx,
+            _status_text(idx, datasets),
         ) + _dataset_to_editor_values(ds)
 
     button_duplicate.click(
         fn=duplicate_dataset,
         inputs=[datasets_state, selected_index_state],
-        outputs=[datasets_state, datasets_table, selected_index_state]
+        outputs=[datasets_state, datasets_table, selected_index_state, status_markdown]
         + detail_editor_widgets,
     )
 
@@ -506,6 +533,7 @@ def dataset_config_tab(
                 datasets,
                 _dataset_summary_rows(datasets),
                 selected_index,
+                _status_text(selected_index, datasets),
             ) + _empty_editor_values()
         datasets = list(datasets)
         del datasets[selected_index]
@@ -514,30 +542,75 @@ def dataset_config_tab(
                 datasets,
                 _dataset_summary_rows(datasets),
                 None,
+                _status_text(None, datasets),
             ) + _empty_editor_values()
         new_idx = min(selected_index, len(datasets) - 1)
         return (
             datasets,
             _dataset_summary_rows(datasets),
             new_idx,
+            _status_text(new_idx, datasets),
         ) + _dataset_to_editor_values(datasets[new_idx])
 
     button_remove.click(
         fn=remove_dataset,
         inputs=[datasets_state, selected_index_state],
-        outputs=[datasets_state, datasets_table, selected_index_state]
+        outputs=[datasets_state, datasets_table, selected_index_state, status_markdown]
         + detail_editor_widgets,
     )
 
-    def browse_source(dtype, current):
+    def browse_source(dtype, current, datasets, selected_index):
         if dtype in ("image_directory", "video_directory"):
-            return get_folder_path(current)
-        return get_file_path(
-            current, default_extension=".jsonl", extension_name="JSONL files (*.jsonl)"
+            new_path = get_folder_path(current)
+        else:
+            new_path = get_file_path(
+                current,
+                default_extension=".jsonl",
+                extension_name="JSONL files (*.jsonl)",
+            )
+
+        if not new_path or new_path == current:
+            # Dialog cancelled or unchanged: leave dataset state untouched.
+            return (
+                datasets,
+                _dataset_summary_rows(datasets),
+                selected_index,
+                _status_text(selected_index, datasets),
+                new_path,
+            )
+
+        if selected_index is None or not (0 <= selected_index < len(datasets)):
+            # Nothing selected yet: picking a source folder/file starts a new dataset row.
+            ds = {dtype: new_path}
+            datasets = list(datasets) + [ds]
+            idx = len(datasets) - 1
+            return (
+                datasets,
+                _dataset_summary_rows(datasets),
+                idx,
+                _status_text(idx, datasets),
+                new_path,
+            )
+
+        # A dataset row is already selected: just update the field; Apply changes commits it.
+        return (
+            datasets,
+            _dataset_summary_rows(datasets),
+            selected_index,
+            _status_text(selected_index, datasets),
+            new_path,
         )
 
     button_browse_source.click(
-        fn=browse_source, inputs=[dtype_radio, source_path], outputs=[source_path]
+        fn=browse_source,
+        inputs=[dtype_radio, source_path, datasets_state, selected_index_state],
+        outputs=[
+            datasets_state,
+            datasets_table,
+            selected_index_state,
+            status_markdown,
+            source_path,
+        ],
     )
     button_browse_cache.click(
         fn=get_folder_path, inputs=[cache_directory], outputs=[cache_directory]
@@ -609,7 +682,7 @@ def dataset_config_tab(
             path = original
         if not path or not os.path.isfile(path):
             return (
-                (path, [], _dataset_summary_rows([]), None)
+                (path, [], _dataset_summary_rows([]), None, _status_text(None, []))
                 + _general_to_widgets({})
                 + _empty_editor_values()
                 + ("No file loaded.",)
@@ -626,7 +699,13 @@ def dataset_config_tab(
         )
         validation = validate_dataset_config(general, datasets)
         return (
-            (path, datasets, _dataset_summary_rows(datasets), idx)
+            (
+                path,
+                datasets,
+                _dataset_summary_rows(datasets),
+                idx,
+                _status_text(idx, datasets),
+            )
             + _general_to_widgets(general)
             + editor_vals
             + (_format_validation(validation),)
@@ -635,7 +714,13 @@ def dataset_config_tab(
     button_open.click(
         fn=lambda path: open_dataset_config(True, path),
         inputs=[dataset_path],
-        outputs=[dataset_path, datasets_state, datasets_table, selected_index_state]
+        outputs=[
+            dataset_path,
+            datasets_state,
+            datasets_table,
+            selected_index_state,
+            status_markdown,
+        ]
         + general_widgets
         + detail_editor_widgets
         + [validation_panel],

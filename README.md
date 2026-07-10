@@ -35,9 +35,27 @@ A **Settings** tab holds GUI-wide preferences, persisted to `config.toml` under 
 |---|---|---|
 | Enable info tooltips on hover | On | Shows each field's description as a floating tooltip when you hover or focus its name, instead of always-on static hint text. Toggling it applies immediately in the browser, no restart needed. |
 
+## Dataset Config tab
+
+The **Dataset Config** tab creates, opens, edits, validates, and saves the dataset TOML file (`[general]` + `[[datasets]]`) that the *Musubi Tuner* tab's "Dataset Config" field points at. It models the fields documented in [musubi-tuner's dataset config docs](https://github.com/kohya-ss/musubi-tuner/blob/main/docs/dataset_config.md); unknown/advanced keys in a hand-edited file (e.g. `fp_1f_*`, `multiple_target`) are preserved untouched when you open and re-save it. Comments are **not** preserved on save.
+
+The tab has two parts:
+
+- **Datasets** — the list of `[[datasets]]` entries that will be written to the file. Starts empty.
+- **Selected dataset** — an editor for whichever row is currently selected in the Datasets list. It's a detail view, not a separate thing: nothing you type here is saved until you commit it.
+
+To build a dataset config from scratch:
+
+1. Set defaults under **General** (resolution, caption extension, batch size, bucket options) — they apply to every dataset unless overridden per-dataset below.
+2. Under **Selected dataset**, pick a *Dataset type* (image/video, directory or JSONL), then click **Browse** next to *Source path* and choose your folder or file. If nothing was selected, this automatically creates a new row in **Datasets** for you and selects it — no need to click "Add" first.
+3. Fill in the rest of the fields for that dataset (a `cache_directory` is required; `caption_extension` is required somewhere — dataset or General — for directory sources; video datasets need `target_frames`). Then click **Apply changes to selected dataset** — this is what actually writes the editor's fields into the row.
+4. To add another dataset, repeat step 2 (Browse with nothing selected starts a fresh row), or click **Add image dataset** / **Add video dataset** for a blank row. Click any row in the **Datasets** table to switch which one you're editing — the status line above the editor always shows which row you're on.
+5. Check the **Validation** panel: `ERROR:` lines block Save, `WARNING:` lines don't.
+6. Click **Save** (writes to the path shown in the top textbox) or **Save as** (choose a new file). **Use this file in training tab** copies the saved path into the Musubi Tuner tab's Dataset Config field.
+
 ## Documentation about musubi-tuner
 
-Have a read of the documentation posted on https://github.com/kohya-ss/musubi-tuner for details about dataset preparation and the accompanying toml file required for training. This only provide a GUI to configure the tuner parameter. Not the dataset configuration file.
+Have a read of the documentation posted on https://github.com/kohya-ss/musubi-tuner for the full dataset TOML schema and CLI flag reference. The GUI's Dataset Config tab covers the documented fields; anything it doesn't model can still be hand-edited in the file and will round-trip untouched.
 
 ## Requirements
 

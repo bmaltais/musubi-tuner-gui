@@ -27,6 +27,14 @@ Shared across every architecture: LoRA training, `save_precision`, torch.compile
 
 Some architecture-specific tuning flags with many rarely-changed sub-options (Kandinsky 5's nabla-attention params, HiDream-O1's DINOv3 loss internals, etc.) are intentionally left to the **Additional Parameters** free-text field rather than getting dedicated widgets — check the [musubi-tuner docs](https://github.com/kohya-ss/musubi-tuner/tree/main/docs) for the full flag reference per architecture.
 
+## Settings
+
+A **Settings** tab holds GUI-wide preferences, persisted to `config.toml` under a `[settings]` table:
+
+| Setting | Default | Effect |
+|---|---|---|
+| Enable info tooltips on hover | On | Shows each field's description as a floating tooltip when you hover or focus its name, instead of always-on static hint text. Toggling it applies immediately in the browser, no restart needed. |
+
 ## Documentation about musubi-tuner
 
 Have a read of the documentation posted on https://github.com/kohya-ss/musubi-tuner for details about dataset preparation and the accompanying toml file required for training. This only provide a GUI to configure the tuner parameter. Not the dataset configuration file.

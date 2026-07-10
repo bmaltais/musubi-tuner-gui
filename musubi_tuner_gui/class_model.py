@@ -32,83 +32,83 @@ class Model:
                 value=str(self.config.get("dataset_config", "")),
             )
 
-        self.group_dit_vae = gr.Group(visible=True)
+        self.group_dit_vae = gr.Column(visible=True)
         with self.group_dit_vae:
             self._initialize_dit_vae_fields()
 
-        self.group_dit_dtype = gr.Group(visible=True)
+        self.group_dit_dtype = gr.Column(visible=True)
         with self.group_dit_dtype:
             self._initialize_dit_dtype_fields()
 
-        self.group_hv_extras = gr.Group(visible=True)
+        self.group_hv_extras = gr.Column(visible=True)
         with self.group_hv_extras:
             self._initialize_hv_extras_fields()
 
-        self.group_dual_text_encoder = gr.Group(visible=True)
+        self.group_dual_text_encoder = gr.Column(visible=True)
         with self.group_dual_text_encoder:
             self._initialize_dual_text_encoder_fields()
 
-        self.group_fp8_common = gr.Group(visible=True)
+        self.group_fp8_common = gr.Column(visible=True)
         with self.group_fp8_common:
             self._initialize_fp8_common_fields()
 
-        self.group_wan_extras = gr.Group(visible=True)
+        self.group_wan_extras = gr.Column(visible=True)
         with self.group_wan_extras:
             self._initialize_wan_extras_fields()
 
-        self.group_single_text_encoder = gr.Group(visible=True)
+        self.group_single_text_encoder = gr.Column(visible=True)
         with self.group_single_text_encoder:
             self._initialize_single_text_encoder_fields()
 
-        self.group_model_version = gr.Group(visible=True)
+        self.group_model_version = gr.Column(visible=True)
         with self.group_model_version:
             self._initialize_model_version_fields()
 
-        self.group_fp8_vl = gr.Group(visible=True)
+        self.group_fp8_vl = gr.Column(visible=True)
         with self.group_fp8_vl:
             self._initialize_fp8_vl_fields()
 
-        self.group_qwen_image_extras = gr.Group(visible=True)
+        self.group_qwen_image_extras = gr.Column(visible=True)
         with self.group_qwen_image_extras:
             self._initialize_qwen_image_extras_fields()
 
-        self.group_flux_2_extras = gr.Group(visible=True)
+        self.group_flux_2_extras = gr.Column(visible=True)
         with self.group_flux_2_extras:
             self._initialize_flux_2_extras_fields()
 
-        self.group_image_encoder = gr.Group(visible=True)
+        self.group_image_encoder = gr.Column(visible=True)
         with self.group_image_encoder:
             self._initialize_image_encoder_fields()
 
-        self.group_hv_1_5_extras = gr.Group(visible=True)
+        self.group_hv_1_5_extras = gr.Column(visible=True)
         with self.group_hv_1_5_extras:
             self._initialize_hv_1_5_extras_fields()
 
-        self.group_framepack_extras = gr.Group(visible=True)
+        self.group_framepack_extras = gr.Column(visible=True)
         with self.group_framepack_extras:
             self._initialize_framepack_extras_fields()
 
-        self.group_kandinsky5_extras = gr.Group(visible=True)
+        self.group_kandinsky5_extras = gr.Column(visible=True)
         with self.group_kandinsky5_extras:
             self._initialize_kandinsky5_extras_fields()
 
-        self.group_hidream_o1_extras = gr.Group(visible=True)
+        self.group_hidream_o1_extras = gr.Column(visible=True)
         with self.group_hidream_o1_extras:
             self._initialize_hidream_o1_extras_fields()
 
-        self.group_ideogram4_extras = gr.Group(visible=True)
+        self.group_ideogram4_extras = gr.Column(visible=True)
         with self.group_ideogram4_extras:
             self._initialize_ideogram4_extras_fields()
 
-        self.group_krea2_extras = gr.Group(visible=True)
+        self.group_krea2_extras = gr.Column(visible=True)
         with self.group_krea2_extras:
             self._initialize_krea2_extras_fields()
 
-        self.group_perf = gr.Group(visible=True)
+        self.group_perf = gr.Column(visible=True)
         with self.group_perf:
             self._initialize_perf_fields()
 
-        self.group_flow_matching = gr.Group(visible=True)
+        self.group_flow_matching = gr.Column(visible=True)
         with self.group_flow_matching:
             self._initialize_flow_matching_fields()
 

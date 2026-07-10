@@ -39,6 +39,7 @@ Python package that implements the Gradio UI for configuring and launching musub
 | `class_save_load.py` | Output dir, save intervals, resume |
 | `class_huggingface.py` | HF upload settings |
 | `class_metadata.py` | LoRA metadata fields |
+| `settings_gui.py` | Settings tab (GUI-wide preferences, e.g. info-tooltip toggle) persisted to `config.toml`'s `[settings]` table |
 | `common_gui.py` | Shared Gradio helpers and path utilities |
 | `custom_logging.py` | Logger setup |
 

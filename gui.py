@@ -2,7 +2,6 @@ import os
 import sys
 import argparse
 import contextlib
-import logging
 import toml
 import gradio as gr
 
@@ -16,9 +15,7 @@ import toml
 # Constants
 PYTHON = sys.executable
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-CSS_FILE_PATH = "./assets/style.css"
 PYPROJECT_FILE_PATH = "./pyproject.toml"
-README_FILE_PATH = "./README.md"
 
 
 # Function to read file content, suppressing any FileNotFoundError

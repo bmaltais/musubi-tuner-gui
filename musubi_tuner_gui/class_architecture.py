@@ -222,6 +222,32 @@ REGISTRY = {
             "dino_loss_weight",
         ],
     ),
+    "ideogram4": ArchitectureSpec(
+        key="ideogram4",
+        label="Ideogram4",
+        train_script="ideogram4_train_network.py",
+        cache_latents_script="ideogram4_cache_latents.py",
+        cache_teo_script="ideogram4_cache_text_encoder_outputs.py",
+        model_field_groups=[
+            "dit_vae",
+            "dit_dtype",
+            "single_text_encoder",
+            "ideogram4_extras",
+            "fp8_common",
+            "flow_matching",
+            "perf",
+        ],
+        unsupported_shared_args=set(),
+        extra_args=[
+            "text_encoder",
+            "unconditional_dit",
+            "sampler_preset",
+            "initial_sigma",
+            "use_unconditional_dit_for_lora_sampling",
+            "validate_caption_structure",
+            "warn_on_caption_issues",
+        ],
+    ),
 }
 
 DEFAULT_ARCHITECTURE = "hunyuanvideo"

@@ -96,6 +96,10 @@ class Model:
         with self.group_hidream_o1_extras:
             self._initialize_hidream_o1_extras_fields()
 
+        self.group_ideogram4_extras = gr.Group(visible=True)
+        with self.group_ideogram4_extras:
+            self._initialize_ideogram4_extras_fields()
+
         self.group_perf = gr.Group(visible=True)
         with self.group_perf:
             self._initialize_perf_fields()
@@ -445,6 +449,48 @@ class Model:
                 value=self.config.get("dino_loss_weight", 0),
                 step=0.001,
                 interactive=True,
+            )
+
+    def _initialize_ideogram4_extras_fields(self) -> None:
+        """Ideogram4-only model fields. log_loss_stats (a debug diagnostics
+        flag) is left to Additional Parameters rather than getting a
+        dedicated widget."""
+        with gr.Row():
+            self.unconditional_dit = gr.Textbox(
+                label="Unconditional DiT Path",
+                placeholder="Path to the unconditional Ideogram 4 DiT checkpoint",
+                value=self.config.get("unconditional_dit", ""),
+            )
+
+            self.sampler_preset = gr.Dropdown(
+                label="Sampler Preset",
+                choices=["V4_DEFAULT_20", "V4_QUALITY_48", "V4_TURBO_12"],
+                value=self.config.get("sampler_preset", None),
+                interactive=True,
+            )
+
+            self.initial_sigma = gr.Number(
+                label="Initial Sigma",
+                info="Override the first denoising sigma for sampling",
+                value=self.config.get("initial_sigma", None),
+                step=0.001,
+                interactive=True,
+            )
+
+        with gr.Row():
+            self.use_unconditional_dit_for_lora_sampling = gr.Checkbox(
+                label="Use Unconditional DiT for LoRA Sampling",
+                value=self.config.get("use_unconditional_dit_for_lora_sampling", False),
+            )
+
+            self.validate_caption_structure = gr.Checkbox(
+                label="Validate Caption Structure",
+                value=self.config.get("validate_caption_structure", False),
+            )
+
+            self.warn_on_caption_issues = gr.Checkbox(
+                label="Warn on Caption Issues",
+                value=self.config.get("warn_on_caption_issues", False),
             )
 
     def _initialize_perf_fields(self) -> None:

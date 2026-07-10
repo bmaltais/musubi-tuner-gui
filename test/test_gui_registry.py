@@ -43,6 +43,7 @@ ALL_GROUP_NAMES = {
     "framepack_extras",
     "kandinsky5_extras",
     "hidream_o1_extras",
+    "ideogram4_extras",
     "perf",
     "flow_matching",
 }
@@ -111,6 +112,7 @@ def test_apply_architecture_visibility_matches_model_field_groups(key, spec):
         "framepack_extras",
         "kandinsky5_extras",
         "hidream_o1_extras",
+        "ideogram4_extras",
         "perf",
         "flow_matching",
     ]

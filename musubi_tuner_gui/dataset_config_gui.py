@@ -19,6 +19,7 @@ from .dataset_config_toml import (
     FRAME_EXTRACTION_CHOICES,
     SOURCE_KEYS,
     VIDEO_SOURCE_KEYS,
+    detect_caption_extension,
     load_dataset_config,
     parse_int_list,
     parse_int_pair,
@@ -294,6 +295,30 @@ def _format_validation(messages: list) -> str:
         else:
             lines.append(f"- {m}")
     return "\n".join(lines)
+
+
+def _autodetect_caption_extension(
+    dtype: str,
+    new_path: str,
+    general_caption_extension_value,
+    current_caption_extension_override,
+):
+    """Decide whether to auto-fill the caption-extension override from folder contents.
+
+    Never overwrites a value the user already typed, and skips the fill if the
+    detected extension already matches the General default (nothing to override).
+    Returns (caption_extension_value, detection_note) — note is "" when unchanged.
+    """
+    if dtype not in ("image_directory", "video_directory"):
+        return current_caption_extension_override, ""
+    if current_caption_extension_override:
+        return current_caption_extension_override, ""
+
+    detected = detect_caption_extension(new_path)
+    if not detected or detected == (general_caption_extension_value or ""):
+        return current_caption_extension_override, ""
+
+    return detected, f" Detected caption extension `{detected}` from the folder."
 
 
 def _status_text(selected_index, datasets: list) -> str:
@@ -587,7 +612,14 @@ def dataset_config_tab(
         + detail_editor_widgets,
     )
 
-    def browse_source(dtype, current, datasets, selected_index):
+    def browse_source(
+        dtype,
+        current,
+        datasets,
+        selected_index,
+        general_caption_extension_value,
+        current_caption_extension_override,
+    ):
         if dtype in ("image_directory", "video_directory"):
             new_path = get_folder_path(current)
         else:
@@ -605,7 +637,15 @@ def dataset_config_tab(
                 selected_index,
                 _status_text(selected_index, datasets),
                 new_path,
+                current_caption_extension_override,
             )
+
+        caption_extension_update, detection_note = _autodetect_caption_extension(
+            dtype,
+            new_path,
+            general_caption_extension_value,
+            current_caption_extension_override,
+        )
 
         if selected_index is None or not (0 <= selected_index < len(datasets)):
             # Nothing selected yet: picking a source folder/file starts a new dataset row.
@@ -616,8 +656,9 @@ def dataset_config_tab(
                 datasets,
                 _dataset_summary_rows(datasets),
                 idx,
-                _status_text(idx, datasets),
+                _status_text(idx, datasets) + detection_note,
                 new_path,
+                caption_extension_update,
             )
 
         # A dataset row is already selected: just update the field; Apply changes commits it.
@@ -625,19 +666,28 @@ def dataset_config_tab(
             datasets,
             _dataset_summary_rows(datasets),
             selected_index,
-            _status_text(selected_index, datasets),
+            _status_text(selected_index, datasets) + detection_note,
             new_path,
+            caption_extension_update,
         )
 
     button_browse_source.click(
         fn=browse_source,
-        inputs=[dtype_radio, source_path, datasets_state, selected_index_state],
+        inputs=[
+            dtype_radio,
+            source_path,
+            datasets_state,
+            selected_index_state,
+            general_caption_extension,
+            caption_extension,
+        ],
         outputs=[
             datasets_state,
             datasets_table,
             selected_index_state,
             status_markdown,
             source_path,
+            caption_extension,
         ],
     )
     button_browse_cache.click(

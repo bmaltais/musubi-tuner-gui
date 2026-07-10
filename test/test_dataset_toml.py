@@ -12,6 +12,7 @@ import toml
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from musubi_tuner_gui.dataset_config_toml import (
+    detect_caption_extension,
     load_dataset_config,
     parse_int_list,
     parse_int_pair,
@@ -165,6 +166,40 @@ def test_validation_warnings_fire():
     messages = validate_dataset_config({}, datasets)
     assert any("1 in target_frames" in m or "contains 1 with" in m for m in messages)
     assert any("duplicates" in m for m in messages)
+
+
+def test_detect_caption_extension_on_real_fixture_dir():
+    directory = os.path.join(REPO_ROOT, "test", "dataset", "darius kawasaki")
+    assert detect_caption_extension(directory) == ".txt"
+
+
+def test_detect_caption_extension_ignores_unrelated_files(tmp_path):
+    (tmp_path / "a.jpg").write_bytes(b"")
+    (tmp_path / "a.txt").write_text("a caption", encoding="utf-8")
+    (tmp_path / "b.jpg").write_bytes(b"")
+    (tmp_path / "b.txt").write_text("b caption", encoding="utf-8")
+    (tmp_path / "readme.md").write_text("not a caption", encoding="utf-8")
+    assert detect_caption_extension(str(tmp_path)) == ".txt"
+
+
+def test_detect_caption_extension_majority_wins(tmp_path):
+    (tmp_path / "a.mp4").write_bytes(b"")
+    (tmp_path / "a.caption").write_text("a", encoding="utf-8")
+    (tmp_path / "b.mp4").write_bytes(b"")
+    (tmp_path / "b.caption").write_text("b", encoding="utf-8")
+    (tmp_path / "c.mp4").write_bytes(b"")
+    (tmp_path / "c.txt").write_text("c", encoding="utf-8")
+    assert detect_caption_extension(str(tmp_path)) == ".caption"
+
+
+def test_detect_caption_extension_returns_none_when_no_captions(tmp_path):
+    (tmp_path / "a.jpg").write_bytes(b"")
+    (tmp_path / "b.jpg").write_bytes(b"")
+    assert detect_caption_extension(str(tmp_path)) is None
+
+
+def test_detect_caption_extension_returns_none_for_missing_dir():
+    assert detect_caption_extension("./this/does/not/exist") is None
 
 
 def test_validation_silent_on_good_fixture():

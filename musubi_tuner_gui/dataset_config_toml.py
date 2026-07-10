@@ -51,6 +51,61 @@ JSONL_SOURCE_KEYS = ["image_jsonl_file", "video_jsonl_file"]
 
 FRAME_EXTRACTION_CHOICES = ["head", "chunk", "slide", "uniform", "full"]
 
+# Mirrors musubi-tuner/src/musubi_tuner/dataset/media_utils.py's IMAGE_EXTENSIONS /
+# VIDEO_EXTENSIONS (lowercased here since matching below is case-insensitive).
+IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".avif", ".jxl"}
+VIDEO_EXTENSIONS = {
+    ".mp4",
+    ".webm",
+    ".avi",
+    ".mkv",
+    ".mov",
+    ".flv",
+    ".wmv",
+    ".m4v",
+    ".mpg",
+    ".mpeg",
+}
+MEDIA_EXTENSIONS = IMAGE_EXTENSIONS | VIDEO_EXTENSIONS
+
+
+def detect_caption_extension(directory: str):
+    """Guess the caption file extension used in a dataset directory.
+
+    Looks for files that share a basename with an image/video file but have a
+    different extension (e.g. `foo.jpg` + `foo.txt`), and returns the most
+    common such extension. Returns None if the directory doesn't exist or no
+    caption-like sibling files are found.
+    """
+    if not directory or not os.path.isdir(directory):
+        return None
+
+    try:
+        entries = os.listdir(directory)
+    except OSError:
+        return None
+
+    exts_by_stem = {}
+    for name in entries:
+        full_path = os.path.join(directory, name)
+        if not os.path.isfile(full_path):
+            continue
+        stem, ext = os.path.splitext(name)
+        exts_by_stem.setdefault(stem, set()).add(ext.lower())
+
+    counts = {}
+    for exts in exts_by_stem.values():
+        if not exts & MEDIA_EXTENSIONS:
+            continue
+        for ext in exts - MEDIA_EXTENSIONS:
+            if not ext:
+                continue
+            counts[ext] = counts.get(ext, 0) + 1
+
+    if not counts:
+        return None
+    return max(counts, key=counts.get)
+
 
 def load_dataset_config(path: str) -> dict:
     """Parse a dataset TOML file into {"general": {...}, "datasets": [...]}."""

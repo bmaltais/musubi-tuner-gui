@@ -36,6 +36,10 @@ class Model:
         with self.group_dit_vae:
             self._initialize_dit_vae_fields()
 
+        self.group_dit_dtype = gr.Group(visible=True)
+        with self.group_dit_dtype:
+            self._initialize_dit_dtype_fields()
+
         self.group_hv_extras = gr.Group(visible=True)
         with self.group_hv_extras:
             self._initialize_hv_extras_fields()
@@ -60,6 +64,10 @@ class Model:
         with self.group_model_version:
             self._initialize_model_version_fields()
 
+        self.group_fp8_vl = gr.Group(visible=True)
+        with self.group_fp8_vl:
+            self._initialize_fp8_vl_fields()
+
         self.group_qwen_image_extras = gr.Group(visible=True)
         with self.group_qwen_image_extras:
             self._initialize_qwen_image_extras_fields()
@@ -67,6 +75,10 @@ class Model:
         self.group_flux_2_extras = gr.Group(visible=True)
         with self.group_flux_2_extras:
             self._initialize_flux_2_extras_fields()
+
+        self.group_hv_1_5_extras = gr.Group(visible=True)
+        with self.group_hv_1_5_extras:
+            self._initialize_hv_1_5_extras_fields()
 
         self.group_perf = gr.Group(visible=True)
         with self.group_perf:
@@ -98,8 +110,8 @@ class Model:
                 interactive=True,
             )
 
-    def _initialize_hv_extras_fields(self) -> None:
-        """HunyuanVideo-only model fields (DiT dtype, VAE tiling, text encoder dtype/fp8)."""
+    def _initialize_dit_dtype_fields(self) -> None:
+        """Shared by architectures with a DiT dtype selector (HunyuanVideo, HunyuanVideo 1.5)."""
         with gr.Row():
             self.dit_dtype = gr.Dropdown(
                 label="DiT Data Type",
@@ -109,6 +121,8 @@ class Model:
                 interactive=True,
             )
 
+    def _initialize_hv_extras_fields(self) -> None:
+        """HunyuanVideo-only model fields (VAE tiling, text encoder dtype/fp8)."""
         with gr.Row():
             self.vae_tiling = gr.Checkbox(
                 label="Enable VAE Spatial Tiling",
@@ -255,14 +269,18 @@ class Model:
                 allow_custom_value=True,
             )
 
-    def _initialize_qwen_image_extras_fields(self) -> None:
-        """Qwen-Image-only model fields (VL fp8, layered mode)."""
+    def _initialize_fp8_vl_fields(self) -> None:
+        """Shared by architectures with a VL/vision-language text encoder fp8
+        toggle (Qwen-Image, HunyuanVideo 1.5)."""
         with gr.Row():
             self.fp8_vl = gr.Checkbox(
                 label="Use FP8 for Text Encoder",
                 value=self.config.get("fp8_vl", False),
             )
 
+    def _initialize_qwen_image_extras_fields(self) -> None:
+        """Qwen-Image-only model fields (layered mode)."""
+        with gr.Row():
             self.num_layers = gr.Number(
                 label="Number of DiT Layers",
                 info="Default is None (60)",
@@ -282,6 +300,42 @@ class Model:
             self.fp8_text_encoder = gr.Checkbox(
                 label="Use FP8 for Text Encoder",
                 value=self.config.get("fp8_text_encoder", False),
+            )
+
+    def _initialize_hv_1_5_extras_fields(self) -> None:
+        """HunyuanVideo 1.5-only model fields (t2v/i2v task, ByT5, image encoder)."""
+        with gr.Row():
+            self.hv15_task = gr.Dropdown(
+                label="Task",
+                info="Text-to-video (t2v) or image-to-video (i2v)",
+                choices=["t2v", "i2v"],
+                value=self.config.get("hv15_task", "t2v"),
+                interactive=True,
+            )
+
+            self.byt5 = gr.Textbox(
+                label="ByT5 Checkpoint Path",
+                placeholder="Path to the ByT5 text encoder checkpoint",
+                value=self.config.get("byt5", ""),
+            )
+
+            self.image_encoder = gr.Textbox(
+                label="Image Encoder Path (i2v)",
+                placeholder="Path to the image encoder checkpoint, required for i2v",
+                value=self.config.get("image_encoder", ""),
+            )
+
+        with gr.Row():
+            self.vae_enable_patch_conv = gr.Checkbox(
+                label="Enable VAE Patch Conv",
+                value=self.config.get("vae_enable_patch_conv", False),
+            )
+
+            self.vae_sample_size = gr.Number(
+                label="VAE Sample Size",
+                value=self.config.get("vae_sample_size", None),
+                step=1,
+                interactive=True,
             )
 
     def _initialize_perf_fields(self) -> None:
@@ -314,6 +368,7 @@ class Model:
                 choices=["sigma", "uniform", "sigmoid", "shift"],
                 value=self.config.get("timestep_sampling", "sigma"),
                 interactive=True,
+                allow_custom_value=True,
             )
 
         with gr.Row():

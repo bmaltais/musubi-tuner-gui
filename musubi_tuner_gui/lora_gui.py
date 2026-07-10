@@ -195,6 +195,11 @@ FIELD_NAMES = [
     "num_layers",
     "remove_first_image_from_target",
     "fp8_text_encoder",
+    "hv15_task",
+    "byt5",
+    "image_encoder",
+    "vae_enable_patch_conv",
+    "vae_sample_size",
 ]
 
 
@@ -435,6 +440,18 @@ def train_model(
         run_cache_latent_cmd.append("--model_version")
         run_cache_latent_cmd.append(str(param_dict.get("model_version")))
 
+    if arch.key == "hv_1_5":
+        if param_dict.get("image_encoder"):
+            run_cache_latent_cmd.append("--image_encoder")
+            run_cache_latent_cmd.append(str(param_dict.get("image_encoder")))
+        if param_dict.get("hv15_task") == "i2v":
+            run_cache_latent_cmd.append("--i2v")
+        if param_dict.get("vae_enable_patch_conv"):
+            run_cache_latent_cmd.append("--vae_enable_patch_conv")
+        if param_dict.get("vae_sample_size"):
+            run_cache_latent_cmd.append("--vae_sample_size")
+            run_cache_latent_cmd.append(str(param_dict.get("vae_sample_size")))
+
     # Reconstruct the safe command string for display
     log.info(f"Executing command: {run_cache_latent_cmd}")
 
@@ -500,6 +517,17 @@ def train_model(
 
         if param_dict.get("fp8_t5"):
             run_cache_teo_cmd.append("--fp8_t5")
+    elif arch.key == "hv_1_5":
+        if param_dict.get("text_encoder"):
+            run_cache_teo_cmd.append("--text_encoder")
+            run_cache_teo_cmd.append(str(param_dict.get("text_encoder")))
+
+        if param_dict.get("byt5"):
+            run_cache_teo_cmd.append("--byt5")
+            run_cache_teo_cmd.append(str(param_dict.get("byt5")))
+
+        if param_dict.get("fp8_vl"):
+            run_cache_teo_cmd.append("--fp8_vl")
     else:
         if param_dict.get("caching_teo_text_encoder1"):
             run_cache_teo_cmd.append("--text_encoder1")
@@ -522,6 +550,7 @@ def train_model(
         "zimage",
         "flux_2",
         "flux_kontext",
+        "hv_1_5",
     ) and param_dict.get("caching_teo_text_encoder_dtype"):
         run_cache_teo_cmd.append("--text_encoder_dtype")
         run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder_dtype")))
@@ -586,8 +615,21 @@ def train_model(
             if key.startswith("caching_latent_") or key.startswith("caching_teo_"):
                 pattern_exclusion.append(key)
 
+        # Wan and HunyuanVideo 1.5 each have their own "--task" widget (different
+        # choices), so the GUI keeps them as distinct fields ("task"/"hv15_task")
+        # but the trainer's TOML key must always be literally "task".
+        training_parameters = [
+            (key, value)
+            for key, value in parameters
+            if key not in ("task", "hv15_task")
+        ]
+        if arch.key == "wan":
+            training_parameters.append(("task", param_dict.get("task")))
+        elif arch.key == "hv_1_5":
+            training_parameters.append(("task", param_dict.get("hv15_task")))
+
         SaveConfigFileToRun(
-            parameters=parameters,
+            parameters=training_parameters,
             file_path=file_path,
             exclusion=[
                 "file_path",
@@ -646,14 +688,17 @@ def apply_architecture(architecture_key):
     spec = get_architecture(architecture_key)
     return (
         gr.Group(visible="dit_vae" in spec.model_field_groups),
+        gr.Group(visible="dit_dtype" in spec.model_field_groups),
         gr.Group(visible="hv_extras" in spec.model_field_groups),
         gr.Group(visible="dual_text_encoder" in spec.model_field_groups),
         gr.Group(visible="fp8_common" in spec.model_field_groups),
         gr.Group(visible="wan_extras" in spec.model_field_groups),
         gr.Group(visible="single_text_encoder" in spec.model_field_groups),
         gr.Group(visible="model_version" in spec.model_field_groups),
+        gr.Group(visible="fp8_vl" in spec.model_field_groups),
         gr.Group(visible="qwen_image_extras" in spec.model_field_groups),
         gr.Group(visible="flux_2_extras" in spec.model_field_groups),
+        gr.Group(visible="hv_1_5_extras" in spec.model_field_groups),
         gr.Group(visible="perf" in spec.model_field_groups),
         gr.Group(visible="flow_matching" in spec.model_field_groups),
     )
@@ -686,14 +731,17 @@ def lora_tab(
             inputs=[model.architecture],
             outputs=[
                 model.group_dit_vae,
+                model.group_dit_dtype,
                 model.group_hv_extras,
                 model.group_dual_text_encoder,
                 model.group_fp8_common,
                 model.group_wan_extras,
                 model.group_single_text_encoder,
                 model.group_model_version,
+                model.group_fp8_vl,
                 model.group_qwen_image_extras,
                 model.group_flux_2_extras,
+                model.group_hv_1_5_extras,
                 model.group_perf,
                 model.group_flow_matching,
             ],
@@ -911,6 +959,12 @@ def lora_tab(
         model.remove_first_image_from_target,
         # flux_2
         model.fp8_text_encoder,
+        # hv_1_5
+        model.hv15_task,
+        model.byt5,
+        model.image_encoder,
+        model.vae_enable_patch_conv,
+        model.vae_sample_size,
     ]
 
     run_state = gr.Textbox(value=train_state_value, visible=False)

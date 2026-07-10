@@ -28,14 +28,17 @@ MUSUBI_TUNER_DIR = os.path.join(REPO_ROOT, "musubi-tuner")
 
 ALL_GROUP_NAMES = {
     "dit_vae",
+    "dit_dtype",
     "hv_extras",
     "dual_text_encoder",
     "fp8_common",
     "wan_extras",
     "single_text_encoder",
     "model_version",
+    "fp8_vl",
     "qwen_image_extras",
     "flux_2_extras",
+    "hv_1_5_extras",
     "perf",
     "flow_matching",
 }
@@ -89,14 +92,17 @@ def test_apply_architecture_visibility_matches_model_field_groups(key, spec):
     # apply_architecture() returns groups in this fixed order (see lora_gui.py).
     ordered_group_names = [
         "dit_vae",
+        "dit_dtype",
         "hv_extras",
         "dual_text_encoder",
         "fp8_common",
         "wan_extras",
         "single_text_encoder",
         "model_version",
+        "fp8_vl",
         "qwen_image_extras",
         "flux_2_extras",
+        "hv_1_5_extras",
         "perf",
         "flow_matching",
     ]

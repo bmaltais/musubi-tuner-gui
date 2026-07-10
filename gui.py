@@ -22,11 +22,8 @@ def read_file_content(file_path):
 
 # Function to initialize the Gradio UI interface
 def initialize_ui_interface(config, headless, release_info, readme_content):
-    # Load custom CSS if available
-    css = read_file_content("./assets/style.css")
-
     # Create the main Gradio Blocks interface
-    ui_interface = gr.Blocks(css=css, title=f"Musubi Tuner GUI {release_info}", theme=gr.themes.Default())
+    ui_interface = gr.Blocks(title=f"Musubi Tuner GUI {release_info}")
     with ui_interface:
         # Create tabs for different functionalities
         with gr.Tab("Musubi Tuner"):
@@ -58,7 +55,8 @@ def UI(**kwargs):
         log.error(f"Error loading release information: {e}")
     
     readme_content = read_file_content("./README.md")
-    
+    css = read_file_content("./assets/style.css")
+
     # Load configuration from the specified file
     config = GUIConfig(config_file_path=kwargs.get("config"))
     if config.is_config_loaded():
@@ -76,6 +74,8 @@ def UI(**kwargs):
         "share": False if kwargs.get("do_not_share", False) else kwargs.get("share", False),
         "root_path": kwargs.get("root_path", None),
         "debug": kwargs.get("debug", False),
+        "css": css,
+        "theme": gr.themes.Default(),
     }
   
     # This line filters out any key-value pairs from `launch_params` where the value is `None`, ensuring only valid parameters are passed to the `launch` function.

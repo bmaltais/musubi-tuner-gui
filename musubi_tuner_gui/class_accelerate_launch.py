@@ -45,9 +45,7 @@ class AccelerateLaunch:
                     maximum=os.cpu_count(),
                     step=1,
                     label="Number of CPU threads per core",
-                    value=self.config.get(
-                        "num_cpu_threads_per_process", 2
-                    ),
+                    value=self.config.get("num_cpu_threads_per_process", 2),
                     info="The number of CPU threads per process.",
                 )
             with gr.Row():
@@ -83,16 +81,12 @@ class AccelerateLaunch:
                 )
                 self.dynamo_use_fullgraph = gr.Checkbox(
                     label="Dynamo use fullgraph",
-                    value=self.config.get(
-                        "dynamo_use_fullgraph", False
-                    ),
+                    value=self.config.get("dynamo_use_fullgraph", False),
                     info="Whether to use full graph mode for dynamo or it is ok to break model into several subgraphs",
                 )
                 self.dynamo_use_dynamic = gr.Checkbox(
                     label="Dynamo use dynamic",
-                    value=self.config.get(
-                        "dynamo_use_dynamic", False
-                    ),
+                    value=self.config.get("dynamo_use_dynamic", False),
                     info="Whether to enable dynamic shape tracing.",
                 )
 
@@ -115,9 +109,7 @@ class AccelerateLaunch:
                 def validate_gpu_ids(value):
                     if value == "":
                         return
-                    if not (
-                        value.isdigit() and int(value) >= 0 and int(value) <= 128
-                    ):
+                    if not (value.isdigit() and int(value) >= 0 and int(value) <= 128):
                         log.error("GPU IDs must be an integer between 0 and 128")
                         return
                     else:
@@ -141,9 +133,7 @@ class AccelerateLaunch:
         with gr.Row():
             self.extra_accelerate_launch_args = gr.Textbox(
                 label="Extra accelerate launch arguments",
-                value=self.config.get(
-                    "extra_accelerate_launch_args", ""
-                ),
+                value=self.config.get("extra_accelerate_launch_args", ""),
                 placeholder="example: --same_network --machine_rank 4",
                 info="List of extra parameters to pass to accelerate launch",
             )

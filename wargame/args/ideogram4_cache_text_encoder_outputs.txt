@@ -1,0 +1,35 @@
+usage: ideogram4_cache_text_encoder_outputs.py [-h] --dataset_config
+                                               DATASET_CONFIG
+                                               [--device DEVICE]
+                                               [--batch_size BATCH_SIZE]
+                                               [--num_workers NUM_WORKERS]
+                                               [--skip_existing]
+                                               [--keep_cache] --text_encoder
+                                               TEXT_ENCODER
+                                               [--text_cache_dtype {bf16,fp8_e4m3fn,float32}]
+                                               [--validate_caption_structure]
+                                               [--warn_on_caption_issues]
+
+options:
+  -h, --help            show this help message and exit
+  --dataset_config DATASET_CONFIG
+                        path to dataset config .toml file
+  --device DEVICE       device to use, default is cuda if available
+  --batch_size BATCH_SIZE
+                        batch size, override dataset config if dataset batch
+                        size > this
+  --num_workers NUM_WORKERS
+                        number of workers for dataset. default is cpu count-1
+  --skip_existing       skip existing cache files
+  --keep_cache          keep cache files not in dataset
+  --text_encoder TEXT_ENCODER
+                        Qwen3-VL BF16 text encoder safetensors path
+  --text_cache_dtype {bf16,fp8_e4m3fn,float32}
+                        dtype for cached Ideogram 4 text features
+  --validate_caption_structure
+                        validate official structured JSON captions before
+                        caching; ordinary prompt captions are accepted by
+                        default
+  --warn_on_caption_issues
+                        warn instead of failing on structured-caption issues
+                        when --validate_caption_structure is enabled

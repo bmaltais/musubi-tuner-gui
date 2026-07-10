@@ -1,0 +1,49 @@
+W0710 10:27:27.732000 3276 Lib\site-packages\torch\utils\flop_counter.py:29] triton not found; flop counting will not work for triton kernels
+usage: wan_cache_latents.py [-h] --dataset_config DATASET_CONFIG [--vae VAE]
+                            [--vae_dtype VAE_DTYPE] [--device DEVICE]
+                            [--batch_size BATCH_SIZE]
+                            [--num_workers NUM_WORKERS] [--skip_existing]
+                            [--keep_cache]
+                            [--debug_mode {image,console,video}]
+                            [--console_width CONSOLE_WIDTH]
+                            [--console_back CONSOLE_BACK]
+                            [--console_num_images CONSOLE_NUM_IMAGES]
+                            [--disable_cudnn_backend] [--vae_cache_cpu]
+                            [--i2v] [--clip CLIP] [--one_frame]
+
+options:
+  -h, --help            show this help message and exit
+  --dataset_config DATASET_CONFIG
+                        path to dataset config .toml file
+  --vae VAE             path to vae checkpoint
+  --vae_dtype VAE_DTYPE
+                        data type for VAE, default depends on model, e.g.,
+                        float16
+  --device DEVICE       device to use, default is cuda if available
+  --batch_size BATCH_SIZE
+                        batch size, override dataset config if dataset batch
+                        size > this
+  --num_workers NUM_WORKERS
+                        number of workers for dataset. default is cpu count-1
+  --skip_existing       skip existing cache files
+  --keep_cache          keep cache files not in dataset
+  --debug_mode {image,console,video}
+                        debug mode
+  --console_width CONSOLE_WIDTH
+                        debug mode: console width
+  --console_back CONSOLE_BACK
+                        debug mode: console background color, one of
+                        ascii_magic.Back
+  --console_num_images CONSOLE_NUM_IMAGES
+                        debug mode: not interactive, number of images to show
+                        for each dataset
+  --disable_cudnn_backend
+                        Disable CUDNN PyTorch backend. May be useful for AMD
+                        GPUs.
+  --vae_cache_cpu       cache features in VAE on CPU
+  --i2v                 I2V model, encode the first frame as control image. If
+                        clip is set, this is automatically set to True
+  --clip CLIP           text encoder (CLIP) checkpoint path, optional. If
+                        training Wan2.1 I2V model, this is required
+  --one_frame           Generate cache for one frame training (single frame,
+                        single section).

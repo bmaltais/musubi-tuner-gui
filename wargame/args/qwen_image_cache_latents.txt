@@ -1,0 +1,62 @@
+W0710 10:28:24.919000 22944 Lib\site-packages\torch\utils\flop_counter.py:29] triton not found; flop counting will not work for triton kernels
+Trying to import sageattention
+Failed to import sageattention
+usage: qwen_image_cache_latents.py [-h] --dataset_config DATASET_CONFIG
+                                   [--vae VAE] [--vae_dtype VAE_DTYPE]
+                                   [--device DEVICE] [--batch_size BATCH_SIZE]
+                                   [--num_workers NUM_WORKERS]
+                                   [--skip_existing] [--keep_cache]
+                                   [--debug_mode {image,console,video}]
+                                   [--console_width CONSOLE_WIDTH]
+                                   [--console_back CONSOLE_BACK]
+                                   [--console_num_images CONSOLE_NUM_IMAGES]
+                                   [--disable_cudnn_backend] [--vae_tiling]
+                                   [--vae_chunk_size VAE_CHUNK_SIZE]
+                                   [--vae_spatial_tile_sample_min_size VAE_SPATIAL_TILE_SAMPLE_MIN_SIZE]
+                                   [--edit] [--edit_plus]
+                                   [--model_version MODEL_VERSION]
+
+options:
+  -h, --help            show this help message and exit
+  --dataset_config DATASET_CONFIG
+                        path to dataset config .toml file
+  --vae VAE             path to vae checkpoint
+  --vae_dtype VAE_DTYPE
+                        data type for VAE, default depends on model, e.g.,
+                        float16
+  --device DEVICE       device to use, default is cuda if available
+  --batch_size BATCH_SIZE
+                        batch size, override dataset config if dataset batch
+                        size > this
+  --num_workers NUM_WORKERS
+                        number of workers for dataset. default is cpu count-1
+  --skip_existing       skip existing cache files
+  --keep_cache          keep cache files not in dataset
+  --debug_mode {image,console,video}
+                        debug mode
+  --console_width CONSOLE_WIDTH
+                        debug mode: console width
+  --console_back CONSOLE_BACK
+                        debug mode: console background color, one of
+                        ascii_magic.Back
+  --console_num_images CONSOLE_NUM_IMAGES
+                        debug mode: not interactive, number of images to show
+                        for each dataset
+  --disable_cudnn_backend
+                        Disable CUDNN PyTorch backend. May be useful for AMD
+                        GPUs.
+  --vae_tiling          enable spatial tiling for VAE, default is False. If
+                        vae_spatial_tile_sample_min_size is set, this is
+                        automatically enabled
+  --vae_chunk_size VAE_CHUNK_SIZE
+                        chunk size for CausalConv3d in VAE
+  --vae_spatial_tile_sample_min_size VAE_SPATIAL_TILE_SAMPLE_MIN_SIZE
+                        spatial tile sample min size for VAE, default 256
+  --edit                Enable Qwen-Image-Edit original, recommend
+                        `--model_version edit` instead
+  --edit_plus           Enable Qwen-Image-Edit-2509 (plus), recommend
+                        `--model_version edit-2509` instead
+  --model_version MODEL_VERSION
+                        training for Qwen-Image model version, e.g.,
+                        'original', 'layered', 'edit', 'edit-2509',
+                        'edit-2511' etc.

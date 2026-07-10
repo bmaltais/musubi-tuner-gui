@@ -6,6 +6,7 @@ from .class_command_executor import CommandExecutor
 
 train_state_value = time.time()
 
+
 class LatentCaching:
     def __init__(
         self,
@@ -31,14 +32,14 @@ class LatentCaching:
                 value=self.config.get("caching_latent_batch_size", None),
                 step=1,
                 interactive=True,
-                info="Override dataset config if dataset batch size > this"
+                info="Override dataset config if dataset batch size > this",
             )
             self.caching_latent_num_workers = gr.Number(
                 label="Number of Workers",
                 value=self.config.get("caching_latent_num_workers", None),
                 step=1,
                 interactive=True,
-                info="Default is CPU count - 1"
+                info="Default is CPU count - 1",
             )
 
         with gr.Row():
@@ -46,13 +47,13 @@ class LatentCaching:
                 label="Skip Existing",
                 value=self.config.get("caching_latent_skip_existing", False),
                 interactive=True,
-                info="Skip existing cache files"
+                info="Skip existing cache files",
             )
             self.caching_latent_keep_cache = gr.Checkbox(
                 label="Keep Cache",
                 value=self.config.get("caching_latent_keep_cache", False),
                 interactive=True,
-                info="Keep cache files not in dataset"
+                info="Keep cache files not in dataset",
             )
 
         with gr.Row():
@@ -68,7 +69,7 @@ class LatentCaching:
                 value=self.config.get("caching_latent_console_width", 80),
                 step=1,
                 interactive=True,
-                info="Console width for debug mode"
+                info="Console width for debug mode",
             )
             self.caching_latent_console_back = gr.Textbox(
                 label="Console Background Color",
@@ -83,5 +84,5 @@ class LatentCaching:
                 value=self.config.get("caching_latent_console_num_images", None),
                 step=1,
                 interactive=True,
-                info="Number of images to show for each dataset in debug mode"
+                info="Number of images to show for each dataset in debug mode",
             )

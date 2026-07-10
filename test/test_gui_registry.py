@@ -1,0 +1,202 @@
+"""Automated tests for the architecture registry and the Gradio wiring it drives.
+
+These guard the two things Move 6/7/8 of the upstream-catchup wargame plan flagged
+as the highest-risk parts of adding new architectures:
+  1. FIELD_NAMES and settings_list silently drifting out of order/length.
+  2. A registered architecture pointing at a script that doesn't exist, or an
+     apply_architecture() mapping that doesn't match its declared field groups.
+
+Run with: uv run pytest test/test_gui_registry.py -v
+"""
+
+import os
+import sys
+
+import pytest
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from musubi_tuner_gui.class_architecture import (
+    REGISTRY,
+    get_architecture,
+    architecture_choices,
+)
+from musubi_tuner_gui.lora_gui import FIELD_NAMES, apply_architecture, gui_actions
+
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MUSUBI_TUNER_DIR = os.path.join(REPO_ROOT, "musubi-tuner")
+
+ALL_GROUP_NAMES = {
+    "dit_vae",
+    "dit_dtype",
+    "hv_extras",
+    "dual_text_encoder",
+    "fp8_common",
+    "wan_extras",
+    "single_text_encoder",
+    "model_version",
+    "fp8_vl",
+    "qwen_image_extras",
+    "flux_2_extras",
+    "image_encoder",
+    "hv_1_5_extras",
+    "framepack_extras",
+    "kandinsky5_extras",
+    "hidream_o1_extras",
+    "ideogram4_extras",
+    "krea2_extras",
+    "perf",
+    "flow_matching",
+}
+
+
+def test_field_names_has_no_duplicates():
+    assert len(FIELD_NAMES) == len(set(FIELD_NAMES))
+
+
+def test_field_names_is_non_empty():
+    assert len(FIELD_NAMES) > 0
+
+
+def test_field_names_include_move_11_shared_features():
+    """Move 11 added save_precision, torch.compile, and block-swap perf
+    options as fields shared by every registered architecture (confirmed
+    present in all 12 architectures' --help dumps). This guards against
+    them being silently dropped from FIELD_NAMES/settings_list."""
+    shared_feature_fields = {
+        "save_precision",
+        "compile",
+        "compile_backend",
+        "compile_mode",
+        "use_pinned_memory_for_block_swap",
+        "block_swap_h2d_only",
+        "block_swap_ring_size",
+    }
+    missing = shared_feature_fields - set(FIELD_NAMES)
+    assert not missing, f"Move 11 shared fields missing from FIELD_NAMES: {missing}"
+
+
+@pytest.mark.parametrize("key,spec", REGISTRY.items())
+def test_registry_scripts_exist_on_disk(key, spec):
+    for script_attr in ("train_script", "cache_latents_script", "cache_teo_script"):
+        script_name = getattr(spec, script_attr)
+        script_path = os.path.join(MUSUBI_TUNER_DIR, script_name)
+        assert os.path.isfile(
+            script_path
+        ), f"{key}.{script_attr} = {script_name!r} does not exist at {script_path}"
+
+
+@pytest.mark.parametrize("key,spec", REGISTRY.items())
+def test_registry_model_field_groups_are_known(key, spec):
+    unknown = set(spec.model_field_groups) - ALL_GROUP_NAMES
+    assert not unknown, f"{key} references unknown field group(s): {unknown}"
+
+
+@pytest.mark.parametrize("key,spec", REGISTRY.items())
+def test_registry_extra_args_are_in_field_names(key, spec):
+    missing = [name for name in spec.extra_args if name not in FIELD_NAMES]
+    assert (
+        not missing
+    ), f"{key}.extra_args references field(s) not in FIELD_NAMES: {missing}"
+
+
+def test_get_architecture_falls_back_to_default_for_unknown_key():
+    spec = get_architecture("does-not-exist")
+    assert spec.key == "hunyuanvideo"
+
+
+def test_architecture_choices_cover_full_registry():
+    labels_and_keys = architecture_choices()
+    keys = {key for _, key in labels_and_keys}
+    assert keys == set(REGISTRY.keys())
+
+
+@pytest.mark.parametrize("key,spec", REGISTRY.items())
+def test_apply_architecture_visibility_matches_model_field_groups(key, spec):
+    # apply_architecture() returns groups in this fixed order (see lora_gui.py).
+    ordered_group_names = [
+        "dit_vae",
+        "dit_dtype",
+        "hv_extras",
+        "dual_text_encoder",
+        "fp8_common",
+        "wan_extras",
+        "single_text_encoder",
+        "model_version",
+        "fp8_vl",
+        "qwen_image_extras",
+        "flux_2_extras",
+        "image_encoder",
+        "hv_1_5_extras",
+        "framepack_extras",
+        "kandinsky5_extras",
+        "hidream_o1_extras",
+        "ideogram4_extras",
+        "krea2_extras",
+        "perf",
+        "flow_matching",
+    ]
+    assert set(ordered_group_names) == ALL_GROUP_NAMES
+    groups = apply_architecture(key)
+    assert len(groups) == len(ordered_group_names)
+    expected = {name: name in spec.model_field_groups for name in ordered_group_names}
+    actual = {name: group.visible for name, group in zip(ordered_group_names, groups)}
+    assert actual == expected
+
+
+def _minimal_field_values(overrides):
+    numeric_defaults = {
+        "network_dim": 32,
+        "max_train_steps": 10,
+        "main_process_port": 0,
+        "num_processes": 0,
+        "num_machines": 0,
+        "num_cpu_threads_per_process": 0,
+    }
+    return [overrides.get(name, numeric_defaults.get(name, "")) for name in FIELD_NAMES]
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("key,spec", REGISTRY.items())
+def test_gui_actions_print_only_emits_correct_train_script(key, spec, capsys):
+    """End-to-end: gui_actions(print_only=True) must resolve to this architecture's
+    own train_script, proving the registry lookup (not a hardcoded path) drives the
+    final accelerate launch command. Runs the real caching subprocesses against the
+    repo's test dataset fixture; expected to fail past argument parsing on the fake
+    model paths, not to succeed.
+    """
+    overrides = {
+        "dataset_config": "test/config/dataset.toml",
+        "dit": "fake/dit.safetensors",
+        "vae": "fake/vae.safetensors",
+        "text_encoder1": "fake/te1.safetensors",
+        "text_encoder2": "fake/te2.safetensors",
+        "caching_teo_text_encoder1": "fake/te1.safetensors",
+        "caching_teo_text_encoder2": "fake/te2.safetensors",
+        "t5": "fake/t5.pth",
+        "clip": "fake/clip.pth",
+        "task": "t2v-14B",
+        "text_encoder": "fake/text_encoder.safetensors",
+        "model_version": "original",
+        "kandinsky5_task": "t2v",
+        "text_encoder_clip": "fake/clip_te.safetensors",
+        "text_encoder_qwen": "fake/qwen_te.safetensors",
+        "network_module": "networks.lora",
+        "output_dir": "test/output",
+        "output_name": "test_lora",
+        "mixed_precision": "bf16",
+        "save_precision": "fp16",
+        "compile": True,
+        "compile_backend": "inductor",
+        "compile_mode": "default",
+        "use_pinned_memory_for_block_swap": True,
+        "block_swap_h2d_only": True,
+        "block_swap_ring_size": 2,
+        "architecture": key,
+        "extra_accelerate_launch_args": "",
+        "additional_parameters": "",
+    }
+    field_values = _minimal_field_values(overrides)
+    gui_actions("train_model", False, "", True, True, *field_values)
+    captured = capsys.readouterr()
+    assert spec.train_script in captured.out

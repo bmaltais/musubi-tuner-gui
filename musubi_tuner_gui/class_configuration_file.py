@@ -1,6 +1,6 @@
 import gradio as gr
 import os
-from .common_gui import list_files, scriptdir, create_refresh_button
+from .common_gui import list_files, scriptdir
 from .custom_logging import setup_logging
 
 # Set up logging
@@ -54,44 +54,49 @@ class ConfigurationFile:
         Create the GUI for configuration file operations.
         """
         # Starts a new group in the GUI for better layout organization.
-        with gr.Group():
+        with gr.Group(elem_id="config_file_toolbar"):
             # Creates a row within the group to align elements horizontally.
             with gr.Row():
                 # Dropdown for selecting or entering the name of a configuration file.
                 self.config_file_name = gr.Dropdown(
                     label="Load/Save Config file",
-                    choices=[self.config.get("config_dir", "")] + self.list_config_dir(self.current_config_dir),
+                    choices=[self.config.get("config_dir", "")]
+                    + self.list_config_dir(self.current_config_dir),
                     value=self.config.get("config_dir", ""),
                     interactive=True,
                     allow_custom_value=True,
+                    scale=4,
                 )
 
                 # Button to refresh the list of configuration files in the dropdown.
-                create_refresh_button(
-                    self.config_file_name,
-                    lambda: None,  # Placeholder for potential future functionality.
-                    lambda: {
-                        "choices": [""] + self.list_config_dir(self.current_config_dir)
-                    },
-                    "open_folder_small",
+                # Styled like the buttons that follow it rather than as a tiny icon-only
+                # "tool" button, since it sits in a row of full labeled actions.
+                self.button_refresh_config = gr.Button("🔄 Refresh", size="md", scale=1)
+                self.button_refresh_config.click(
+                    fn=lambda: gr.Dropdown(
+                        choices=[""] + self.list_config_dir(self.current_config_dir)
+                    ),
+                    inputs=[],
+                    outputs=self.config_file_name,
                 )
 
                 # Buttons for opening, saving, and loading configuration files, displayed conditionally based on headless mode.
                 self.button_open_config = gr.Button(
-                    "📂",
-                    elem_id="open_folder_small",
-                    elem_classes=["tool"],
+                    "📂 Browse…",
                     visible=(not self.headless),
-                )
-                self.button_save_config = gr.Button(
-                    "💾",
-                    elem_id="open_folder_small",
-                    elem_classes=["tool"],
+                    size="md",
+                    scale=1,
                 )
                 self.button_load_config = gr.Button(
-                    "↩️ ",
-                    elem_id="open_folder_small",
-                    elem_classes=["tool"],
+                    "📥 Load",
+                    size="md",
+                    scale=1,
+                )
+                self.button_save_config = gr.Button(
+                    "💾 Save",
+                    variant="primary",
+                    size="md",
+                    scale=1,
                 )
 
             # Handler for change events on the configuration file dropdown, allowing dynamic update of choices.

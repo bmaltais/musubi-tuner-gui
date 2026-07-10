@@ -52,7 +52,10 @@ class MetaData:
             run_cmd.append("--metadata_author")
             run_cmd.append(kwargs["metadata_author"])
 
-        if "metadata_description" in kwargs and kwargs.get("metadata_description") != "":
+        if (
+            "metadata_description" in kwargs
+            and kwargs.get("metadata_description") != ""
+        ):
             run_cmd.append("--metadata_description")
             run_cmd.append(kwargs["metadata_description"])
 

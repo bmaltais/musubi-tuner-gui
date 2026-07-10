@@ -257,6 +257,14 @@ def _general_from_widgets(
     return general
 
 
+_TYPE_LABELS = {
+    "image_directory": "Image dir",
+    "image_jsonl_file": "Image JSONL",
+    "video_directory": "Video dir",
+    "video_jsonl_file": "Video JSONL",
+}
+
+
 def _dataset_summary_rows(datasets: list) -> list:
     rows = []
     for i, ds in enumerate(datasets):
@@ -265,7 +273,7 @@ def _dataset_summary_rows(datasets: list) -> list:
         rows.append(
             [
                 i,
-                dtype or "(no source)",
+                _TYPE_LABELS.get(dtype, "(no source)"),
                 source,
                 ds.get("cache_directory", ""),
                 ds.get("num_repeats", ""),
@@ -276,8 +284,16 @@ def _dataset_summary_rows(datasets: list) -> list:
 
 def _format_validation(messages: list) -> str:
     if not messages:
-        return "No validation issues found."
-    return "\n".join(messages)
+        return "✅ No validation issues found."
+    lines = []
+    for m in messages:
+        if m.startswith("ERROR:"):
+            lines.append(f"- ❌ **Error:** {m[len('ERROR:'):].strip()}")
+        elif m.startswith("WARNING:"):
+            lines.append(f"- ⚠️ **Warning:** {m[len('WARNING:'):].strip()}")
+        else:
+            lines.append(f"- {m}")
+    return "\n".join(lines)
 
 
 def _status_text(selected_index, datasets: list) -> str:
@@ -328,11 +344,11 @@ def dataset_config_tab(
             value=str(config.get("settings.dataset_config_edit_path", "")),
             scale=4,
         )
-        button_open = gr.Button("📂 Open", visible=(not headless))
-        button_save = gr.Button("💾 Save")
-        button_save_as = gr.Button("💾 Save as", visible=(not headless))
+        button_open = gr.Button("📂 Open…", visible=(not headless))
+        button_save = gr.Button("💾 Save", variant="primary")
+        button_save_as = gr.Button("💾 Save as…", visible=(not headless))
 
-    with gr.Accordion("General", open=True):
+    with gr.Accordion("⚙️ General", open=True, elem_classes="preset_background"):
         with gr.Row():
             general_resolution = gr.Textbox(
                 label="Resolution (W,H)", placeholder="960,544"
@@ -355,75 +371,87 @@ def dataset_config_tab(
         general_bucket_no_upscale,
     ]
 
-    gr.Markdown("### Datasets")
-    with gr.Row():
-        button_add_image = gr.Button("Add image dataset")
-        button_add_video = gr.Button("Add video dataset")
-        button_duplicate = gr.Button("Duplicate selected")
-        button_remove = gr.Button("Remove selected")
-
-    datasets_table = gr.Dataframe(
-        headers=["#", "Type", "Source", "Cache dir", "Repeats"],
-        datatype=["number", "str", "str", "str", "number"],
-        interactive=False,
-        row_count=(0, "dynamic"),
-    )
-
-    gr.Markdown("### Selected dataset")
-    status_markdown = gr.Markdown(_status_text(None, []))
-    dtype_radio = gr.Radio(
-        label="Dataset type",
-        choices=DATASET_TYPE_CHOICES,
-        value="image_directory",
-    )
-    with gr.Row():
-        source_path = gr.Textbox(label="Source path", scale=4)
-        button_browse_source = gr.Button("Browse")
-    with gr.Row():
-        cache_directory = gr.Textbox(label="Cache directory", scale=4)
-        button_browse_cache = gr.Button("Browse")
-    with gr.Row():
-        control_directory = gr.Textbox(label="Control directory", scale=4)
-        button_browse_control = gr.Button("Browse")
-
-    with gr.Row():
-        caption_extension = gr.Textbox(
-            label="Caption Extension (override)", placeholder=".txt"
+    with gr.Accordion("📚 Datasets", open=True, elem_classes="huggingface_background"):
+        gr.Markdown(
+            "One row per `[[datasets]]` entry that will be written to the file. "
+            "Select a row below to edit it in **Selected dataset**."
         )
-        resolution = gr.Textbox(
-            label="Resolution override (W,H)", placeholder="960,544"
-        )
-        batch_size = gr.Number(label="Batch Size override", precision=0)
-        num_repeats = gr.Number(label="Num Repeats", precision=0)
-
-    with gr.Row():
-        enable_bucket = gr.Checkbox(label="Enable Bucket override")
-        bucket_no_upscale = gr.Checkbox(label="Bucket No Upscale override")
-        no_resize_control = gr.Checkbox(label="No Resize Control")
-
-    control_resolution = gr.Textbox(
-        label="Control Resolution (W,H)", placeholder="960,544"
-    )
-
-    with gr.Column(visible=False) as video_group:
-        gr.Markdown("Video-only fields")
-        target_frames = gr.Textbox(label="Target Frames", placeholder="1,25,45")
         with gr.Row():
-            frame_extraction = gr.Dropdown(
-                label="Frame Extraction",
-                choices=FRAME_EXTRACTION_CHOICES,
-                value=FRAME_EXTRACTION_CHOICES[0],
+            button_add_image = gr.Button("🖼️ Add image dataset")
+            button_add_video = gr.Button("🎬 Add video dataset")
+            button_duplicate = gr.Button("📄 Duplicate selected")
+            button_remove = gr.Button("🗑️ Remove selected", variant="stop")
+
+        datasets_table = gr.Dataframe(
+            headers=["#", "Type", "Source", "Cache dir", "Repeats"],
+            datatype=["number", "str", "str", "str", "number"],
+            interactive=False,
+            row_count=(0, "dynamic"),
+        )
+
+    with gr.Accordion(
+        "✏️ Selected dataset", open=True, elem_classes="samples_background"
+    ):
+        status_markdown = gr.Markdown(_status_text(None, []))
+        dtype_radio = gr.Radio(
+            label="Dataset type",
+            choices=DATASET_TYPE_CHOICES,
+            value="image_directory",
+        )
+
+        gr.Markdown("**Paths**")
+        with gr.Row():
+            source_path = gr.Textbox(label="Source path", scale=4)
+            button_browse_source = gr.Button("📁 Browse")
+        with gr.Row():
+            cache_directory = gr.Textbox(label="Cache directory", scale=4)
+            button_browse_cache = gr.Button("📁 Browse")
+        with gr.Row():
+            control_directory = gr.Textbox(label="Control directory", scale=4)
+            button_browse_control = gr.Button("📁 Browse")
+
+        gr.Markdown("**Overrides** (blank = use the General default above)")
+        with gr.Row():
+            caption_extension = gr.Textbox(
+                label="Caption Extension (override)", placeholder=".txt"
             )
-            frame_stride = gr.Number(label="Frame Stride", precision=0)
-            frame_sample = gr.Number(label="Frame Sample", precision=0)
-            max_frames = gr.Number(label="Max Frames", precision=0)
-        source_fps = gr.Textbox(label="Source FPS", placeholder="30")
+            resolution = gr.Textbox(
+                label="Resolution override (W,H)", placeholder="960,544"
+            )
+            batch_size = gr.Number(label="Batch Size override", precision=0)
+            num_repeats = gr.Number(label="Num Repeats", precision=0)
 
-    unknown_keys_note = gr.Markdown("")
+        with gr.Row():
+            enable_bucket = gr.Checkbox(label="Enable Bucket override")
+            bucket_no_upscale = gr.Checkbox(label="Bucket No Upscale override")
+            no_resize_control = gr.Checkbox(label="No Resize Control")
 
-    button_apply = gr.Button("Apply changes to selected dataset", variant="primary")
+        control_resolution = gr.Textbox(
+            label="Control Resolution (W,H)", placeholder="960,544"
+        )
 
-    validation_panel = gr.Textbox(label="Validation", interactive=False, lines=6)
+        with gr.Column(visible=False) as video_group:
+            gr.Markdown("**Video-only fields**")
+            target_frames = gr.Textbox(label="Target Frames", placeholder="1,25,45")
+            with gr.Row():
+                frame_extraction = gr.Dropdown(
+                    label="Frame Extraction",
+                    choices=FRAME_EXTRACTION_CHOICES,
+                    value=FRAME_EXTRACTION_CHOICES[0],
+                )
+                frame_stride = gr.Number(label="Frame Stride", precision=0)
+                frame_sample = gr.Number(label="Frame Sample", precision=0)
+                max_frames = gr.Number(label="Max Frames", precision=0)
+            source_fps = gr.Textbox(label="Source FPS", placeholder="30")
+
+        unknown_keys_note = gr.Markdown("")
+
+        button_apply = gr.Button(
+            "✅ Apply changes to selected dataset", variant="primary"
+        )
+
+    gr.Markdown("### 🔍 Validation")
+    validation_panel = gr.Markdown(_format_validation([]))
 
     detail_editor_widgets = [
         dtype_radio,
@@ -685,7 +713,7 @@ def dataset_config_tab(
                 (path, [], _dataset_summary_rows([]), None, _status_text(None, []))
                 + _general_to_widgets({})
                 + _empty_editor_values()
-                + ("No file loaded.",)
+                + ("_No file loaded._",)
             )
 
         data = load_dataset_config(path)
@@ -762,7 +790,7 @@ def dataset_config_tab(
     )
 
     if training_dataset_config_component is not None:
-        button_use_in_training = gr.Button("Use this file in training tab")
+        button_use_in_training = gr.Button("🔗 Use this file in training tab")
         button_use_in_training.click(
             fn=lambda path: path,
             inputs=[dataset_path],

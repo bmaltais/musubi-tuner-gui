@@ -40,6 +40,14 @@ class Model:
         with self.group_hv_extras:
             self._initialize_hv_extras_fields()
 
+        self.group_dual_text_encoder = gr.Group(visible=True)
+        with self.group_dual_text_encoder:
+            self._initialize_dual_text_encoder_fields()
+
+        self.group_fp8_common = gr.Group(visible=True)
+        with self.group_fp8_common:
+            self._initialize_fp8_common_fields()
+
         self.group_wan_extras = gr.Group(visible=True)
         with self.group_wan_extras:
             self._initialize_wan_extras_fields()
@@ -91,7 +99,7 @@ class Model:
             )
 
     def _initialize_hv_extras_fields(self) -> None:
-        """HunyuanVideo-only model fields (dual text encoder, VAE tiling, fp8)."""
+        """HunyuanVideo-only model fields (DiT dtype, VAE tiling, text encoder dtype/fp8)."""
         with gr.Row():
             self.dit_dtype = gr.Dropdown(
                 label="DiT Data Type",
@@ -124,6 +132,22 @@ class Model:
             )
 
         with gr.Row():
+            self.text_encoder_dtype = gr.Dropdown(
+                label="Text Encoder Data Type",
+                info="Select the data type for Text Encoder",
+                choices=["float16", "bfloat16"],
+                value=self.config.get("text_encoder_dtype", "float16"),
+                interactive=True,
+            )
+
+            self.fp8_llm = gr.Checkbox(
+                label="Use FP8 for LLM",
+                value=self.config.get("fp8_llm", False),
+            )
+
+    def _initialize_dual_text_encoder_fields(self) -> None:
+        """Shared by architectures with two text encoder paths (HunyuanVideo, FLUX Kontext)."""
+        with gr.Row():
             self.text_encoder1 = gr.Textbox(
                 label="Text Encoder 1 Directory/file",
                 placeholder="Path to Text Encoder 1 directory or file",
@@ -136,23 +160,23 @@ class Model:
                 value=self.config.get("text_encoder2", ""),
             )
 
-            self.text_encoder_dtype = gr.Dropdown(
-                label="Text Encoder Data Type",
-                info="Select the data type for Text Encoder",
-                choices=["float16", "bfloat16"],
-                value=self.config.get("text_encoder_dtype", "float16"),
-                interactive=True,
-            )
-
+    def _initialize_fp8_common_fields(self) -> None:
+        """fp8_base and fp8_scaled are supported by every architecture seen so
+        far; fp8_t5 is shared by Wan and FLUX Kontext specifically."""
         with gr.Row():
-            self.fp8_llm = gr.Checkbox(
-                label="Use FP8 for LLM",
-                value=self.config.get("fp8_llm", False),
-            )
-
             self.fp8_base = gr.Checkbox(
                 label="Use FP8 for Base Model",
                 value=self.config.get("fp8_base", False),
+            )
+
+            self.fp8_scaled = gr.Checkbox(
+                label="Use scaled FP8 for DiT",
+                value=self.config.get("fp8_scaled", False),
+            )
+
+            self.fp8_t5 = gr.Checkbox(
+                label="Use FP8 for T5",
+                value=self.config.get("fp8_t5", False),
             )
 
     def _initialize_wan_extras_fields(self) -> None:
@@ -204,16 +228,6 @@ class Model:
             )
 
         with gr.Row():
-            self.fp8_scaled = gr.Checkbox(
-                label="Use scaled FP8 for DiT",
-                value=self.config.get("fp8_scaled", False),
-            )
-
-            self.fp8_t5 = gr.Checkbox(
-                label="Use FP8 for T5",
-                value=self.config.get("fp8_t5", False),
-            )
-
             self.vae_cache_cpu = gr.Checkbox(
                 label="Cache VAE features on CPU",
                 value=self.config.get("vae_cache_cpu", False),

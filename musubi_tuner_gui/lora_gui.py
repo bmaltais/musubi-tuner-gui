@@ -489,6 +489,17 @@ def train_model(
         if param_dict.get("model_version"):
             run_cache_teo_cmd.append("--model_version")
             run_cache_teo_cmd.append(str(param_dict.get("model_version")))
+    elif arch.key == "flux_kontext":
+        if param_dict.get("caching_teo_text_encoder1"):
+            run_cache_teo_cmd.append("--text_encoder1")
+            run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder1")))
+
+        if param_dict.get("caching_teo_text_encoder2"):
+            run_cache_teo_cmd.append("--text_encoder2")
+            run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder2")))
+
+        if param_dict.get("fp8_t5"):
+            run_cache_teo_cmd.append("--fp8_t5")
     else:
         if param_dict.get("caching_teo_text_encoder1"):
             run_cache_teo_cmd.append("--text_encoder1")
@@ -505,9 +516,13 @@ def train_model(
         run_cache_teo_cmd.append("--device")
         run_cache_teo_cmd.append(str(param_dict.get("caching_teo_device")))
 
-    if arch.key not in ("wan", "qwen_image", "zimage", "flux_2") and param_dict.get(
-        "caching_teo_text_encoder_dtype"
-    ):
+    if arch.key not in (
+        "wan",
+        "qwen_image",
+        "zimage",
+        "flux_2",
+        "flux_kontext",
+    ) and param_dict.get("caching_teo_text_encoder_dtype"):
         run_cache_teo_cmd.append("--text_encoder_dtype")
         run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder_dtype")))
 
@@ -632,6 +647,8 @@ def apply_architecture(architecture_key):
     return (
         gr.Group(visible="dit_vae" in spec.model_field_groups),
         gr.Group(visible="hv_extras" in spec.model_field_groups),
+        gr.Group(visible="dual_text_encoder" in spec.model_field_groups),
+        gr.Group(visible="fp8_common" in spec.model_field_groups),
         gr.Group(visible="wan_extras" in spec.model_field_groups),
         gr.Group(visible="single_text_encoder" in spec.model_field_groups),
         gr.Group(visible="model_version" in spec.model_field_groups),
@@ -670,6 +687,8 @@ def lora_tab(
             outputs=[
                 model.group_dit_vae,
                 model.group_hv_extras,
+                model.group_dual_text_encoder,
+                model.group_fp8_common,
                 model.group_wan_extras,
                 model.group_single_text_encoder,
                 model.group_model_version,

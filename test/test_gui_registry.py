@@ -29,6 +29,8 @@ MUSUBI_TUNER_DIR = os.path.join(REPO_ROOT, "musubi-tuner")
 ALL_GROUP_NAMES = {
     "dit_vae",
     "hv_extras",
+    "dual_text_encoder",
+    "fp8_common",
     "wan_extras",
     "single_text_encoder",
     "model_version",
@@ -88,6 +90,8 @@ def test_apply_architecture_visibility_matches_model_field_groups(key, spec):
     ordered_group_names = [
         "dit_vae",
         "hv_extras",
+        "dual_text_encoder",
+        "fp8_common",
         "wan_extras",
         "single_text_encoder",
         "model_version",

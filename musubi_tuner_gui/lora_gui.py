@@ -29,6 +29,7 @@ from .common_gui import (
 )
 from .class_huggingface import HuggingFace
 from .class_metadata import MetaData
+from .class_architecture import get_architecture
 from .custom_logging import setup_logging
 
 # Set up logging
@@ -42,6 +43,146 @@ huggingface = None
 
 train_state_value = time.time()
 
+# Single source of truth for the order in which widget values are passed to
+# gui_actions(): must stay in the same order as the settings_list built in
+# lora_tab(). Both are derived from this same list so they can never drift
+# apart silently.
+FIELD_NAMES = [
+    "mixed_precision",
+    "num_cpu_threads_per_process",
+    "num_processes",
+    "num_machines",
+    "multi_gpu",
+    "gpu_ids",
+    "main_process_port",
+    "dynamo_backend",
+    "dynamo_mode",
+    "dynamo_use_fullgraph",
+    "dynamo_use_dynamic",
+    "extra_accelerate_launch_args",
+    "additional_parameters",
+    "dataset_config",
+    "sdpa",
+    "flash_attn",
+    "sage_attn",
+    "xformers",
+    "split_attn",
+    "max_train_steps",
+    "max_train_epochs",
+    "max_data_loader_n_workers",
+    "persistent_data_loader_workers",
+    "seed",
+    "gradient_checkpointing",
+    "gradient_accumulation_steps",
+    "logging_dir",
+    "log_with",
+    "log_prefix",
+    "log_tracker_name",
+    "wandb_run_name",
+    "log_tracker_config",
+    "wandb_api_key",
+    "log_config",
+    "ddp_timeout",
+    "ddp_gradient_as_bucket_view",
+    "ddp_static_graph",
+    "sample_every_n_steps",
+    "sample_at_first",
+    "sample_every_n_epochs",
+    "sample_prompts",
+    "caching_latent_device",
+    "caching_latent_batch_size",
+    "caching_latent_num_workers",
+    "caching_latent_skip_existing",
+    "caching_latent_keep_cache",
+    "caching_latent_debug_mode",
+    "caching_latent_console_width",
+    "caching_latent_console_back",
+    "caching_latent_console_num_images",
+    "caching_teo_text_encoder1",
+    "caching_teo_text_encoder2",
+    "caching_teo_text_encoder_dtype",
+    "caching_teo_device",
+    "caching_teo_fp8_llm",
+    "caching_teo_batch_size",
+    "caching_teo_num_workers",
+    "caching_teo_skip_existing",
+    "caching_teo_keep_cache",
+    "optimizer_type",
+    "optimizer_args",
+    "learning_rate",
+    "max_grad_norm",
+    "lr_scheduler",
+    "lr_warmup_steps",
+    "lr_decay_steps",
+    "lr_scheduler_num_cycles",
+    "lr_scheduler_power",
+    "lr_scheduler_timescale",
+    "lr_scheduler_min_lr_ratio",
+    "lr_scheduler_type",
+    "lr_scheduler_args",
+    "dit",
+    "dit_dtype",
+    "vae",
+    "vae_dtype",
+    "vae_tiling",
+    "vae_chunk_size",
+    "vae_spatial_tile_sample_min_size",
+    "text_encoder1",
+    "text_encoder2",
+    "fp8_llm",
+    "fp8_base",
+    "blocks_to_swap",
+    "img_in_txt_in_offloading",
+    "guidance_scale",
+    "timestep_sampling",
+    "discrete_flow_shift",
+    "sigmoid_scale",
+    "weighting_scheme",
+    "logit_mean",
+    "logit_std",
+    "mode_scale",
+    "min_timestep",
+    "max_timestep",
+    "show_timesteps",
+    "no_metadata",
+    "network_weights",
+    "network_module",
+    "network_dim",
+    "network_alpha",
+    "network_dropout",
+    "network_args",
+    "training_comment",
+    "dim_from_weights",
+    "scale_weight_norms",
+    "base_weights",
+    "base_weights_multiplier",
+    "output_dir",
+    "output_name",
+    "resume",
+    "save_every_n_epochs",
+    "save_every_n_steps",
+    "save_last_n_epochs",
+    "save_last_n_epochs_state",
+    "save_last_n_steps",
+    "save_last_n_steps_state",
+    "save_state",
+    "save_state_on_train_end",
+    "huggingface_repo_id",
+    "huggingface_token",
+    "huggingface_repo_type",
+    "huggingface_repo_visibility",
+    "huggingface_path_in_repo",
+    "save_state_to_huggingface",
+    "resume_from_huggingface",
+    "async_upload",
+    "metadata_author",
+    "metadata_description",
+    "metadata_license",
+    "metadata_tags",
+    "metadata_title",
+    "architecture",
+]
+
 
 def gui_actions(
     # action type
@@ -51,149 +192,10 @@ def gui_actions(
     file_path,
     headless,
     print_only,
-    # accelerate_launch
-    mixed_precision,
-    num_cpu_threads_per_process,
-    num_processes,
-    num_machines,
-    multi_gpu,
-    gpu_ids,
-    main_process_port,
-    dynamo_backend,
-    dynamo_mode,
-    dynamo_use_fullgraph,
-    dynamo_use_dynamic,
-    extra_accelerate_launch_args,
-    # advanced_training
-    additional_parameters,
-    dataset_config,
-    sdpa,
-    flash_attn,
-    sage_attn,
-    xformers,
-    split_attn,
-    max_train_steps,
-    max_train_epochs,
-    max_data_loader_n_workers,
-    persistent_data_loader_workers,
-    seed,
-    gradient_checkpointing,
-    gradient_accumulation_steps,
-    logging_dir,
-    log_with,
-    log_prefix,
-    log_tracker_name,
-    wandb_run_name,
-    log_tracker_config,
-    wandb_api_key,
-    log_config,
-    ddp_timeout,
-    ddp_gradient_as_bucket_view,
-    ddp_static_graph,
-    sample_every_n_steps,
-    sample_at_first,
-    sample_every_n_epochs,
-    sample_prompts,
-    # Latent Caching
-    caching_latent_device,
-    caching_latent_batch_size,
-    caching_latent_num_workers,
-    caching_latent_skip_existing,
-    caching_latent_keep_cache,
-    caching_latent_debug_mode,
-    caching_latent_console_width,
-    caching_latent_console_back,
-    caching_latent_console_num_images,
-    # Text Encoder Outputs Caching
-    caching_teo_text_encoder1,
-    caching_teo_text_encoder2,
-    caching_teo_text_encoder_dtype,
-    caching_teo_device,
-    caching_teo_fp8_llm,
-    caching_teo_batch_size,
-    caching_teo_num_workers,
-    caching_teo_skip_existing,
-    caching_teo_keep_cache,
-    optimizer_type,
-    optimizer_args,
-    learning_rate,
-    max_grad_norm,
-    lr_scheduler,
-    lr_warmup_steps,
-    lr_decay_steps,
-    lr_scheduler_num_cycles,
-    lr_scheduler_power,
-    lr_scheduler_timescale,
-    lr_scheduler_min_lr_ratio,
-    lr_scheduler_type,
-    lr_scheduler_args,
-    dit,
-    dit_dtype,
-    vae,
-    vae_dtype,
-    vae_tiling,
-    vae_chunk_size,
-    vae_spatial_tile_sample_min_size,
-    text_encoder1,
-    text_encoder2,
-    fp8_llm,
-    fp8_base,
-    blocks_to_swap,
-    img_in_txt_in_offloading,
-    guidance_scale,
-    timestep_sampling,
-    discrete_flow_shift,
-    sigmoid_scale,
-    weighting_scheme,
-    logit_mean,
-    logit_std,
-    mode_scale,
-    min_timestep,
-    max_timestep,
-    show_timesteps,
-    no_metadata,
-    network_weights,
-    network_module,
-    network_dim,
-    network_alpha,
-    network_dropout,
-    network_args,
-    training_comment,
-    dim_from_weights,
-    scale_weight_norms,
-    base_weights,
-    base_weights_multiplier,
-    output_dir,
-    output_name,
-    resume,
-    save_every_n_epochs,
-    save_every_n_steps,
-    save_last_n_epochs,
-    save_last_n_epochs_state,
-    save_last_n_steps,
-    save_last_n_steps_state,
-    save_state,
-    save_state_on_train_end,
-    huggingface_repo_id,
-    huggingface_token,
-    huggingface_repo_type,
-    huggingface_repo_visibility,
-    huggingface_path_in_repo,
-    save_state_to_huggingface,
-    resume_from_huggingface,
-    async_upload,
-    metadata_author,
-    metadata_description,
-    metadata_license,
-    metadata_tags,
-    metadata_title,
+    # every architecture/training/caching field, in FIELD_NAMES order
+    *field_values,
 ):
-    # Get list of function parameters and values
-    parameters = [
-        (k, v)
-        for k, v in locals().items()
-        if k not in ["action_type", "bool_value", "headless", "print_only"]
-    ]
+    parameters = list(zip(FIELD_NAMES, field_values))
 
     if action_type == "save_configuration":
         log.info("Save configuration...")
@@ -343,10 +345,12 @@ def train_model(
 
     param_dict = dict(parameters)
 
+    arch = get_architecture(param_dict.get("architecture"))
+
     run_cache_latent_cmd = [
         "uv",
         "run",
-        "./musubi-tuner/cache_latents.py",
+        f"./musubi-tuner/{arch.cache_latents_script}",
         "--dataset_config",
         str(param_dict.get("dataset_config")),
         "--vae",
@@ -419,7 +423,7 @@ def train_model(
     run_cache_teo_cmd = [
         "uv",
         "run",
-        "./musubi-tuner/cache_text_encoder_outputs.py",
+        f"./musubi-tuner/{arch.cache_teo_script}",
         "--dataset_config",
         str(param_dict.get("dataset_config")),
     ]
@@ -483,7 +487,7 @@ def train_model(
         extra_accelerate_launch_args=param_dict.get("extra_accelerate_launch_args"),
     )
 
-    run_cmd.append(rf"{scriptdir}/musubi-tuner/hv_train_network.py")
+    run_cmd.append(rf"{scriptdir}/musubi-tuner/{arch.train_script}")
 
     if print_only:
         print_command_and_toml(run_cmd, "")
@@ -522,6 +526,7 @@ def train_model(
                 "dynamo_use_fullgraph",
                 "dynamo_use_dynamic",
                 "extra_accelerate_launch_args",
+                "architecture",
             ]
             + pattern_exclusion,
         )
@@ -553,6 +558,20 @@ def train_model(
         )
 
 
+def apply_architecture(architecture_key):
+    """Show/hide the Model Settings field groups for the selected architecture.
+
+    Shared between the architecture dropdown's change event and config loading
+    so both paths always agree on which fields are visible.
+    """
+    spec = get_architecture(architecture_key)
+    return (
+        gr.Group(visible="dit_vae_te" in spec.model_field_groups),
+        gr.Group(visible="perf" in spec.model_field_groups),
+        gr.Group(visible="flow_matching" in spec.model_field_groups),
+    )
+
+
 def lora_tab(
     headless=False,
     config: GUIConfig = {},
@@ -575,6 +594,15 @@ def lora_tab(
 
     with gr.Accordion("Model Settings", open=True, elem_classes="preset_background"):
         model = Model(headless=headless, config=config)
+        model.architecture.change(
+            fn=apply_architecture,
+            inputs=[model.architecture],
+            outputs=[
+                model.group_dit_vae_te,
+                model.group_perf,
+                model.group_flow_matching,
+            ],
+        )
 
     with gr.Accordion("Caching", open=True, elem_classes="samples_background"):
         with gr.Tab("Latent caching"):
@@ -769,6 +797,8 @@ def lora_tab(
         metadata.metadata_license,
         metadata.metadata_tags,
         metadata.metadata_title,
+        # architecture
+        model.architecture,
     ]
 
     run_state = gr.Textbox(value=train_state_value, visible=False)

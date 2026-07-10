@@ -1,6 +1,6 @@
 import gradio as gr
-import toml
 from .class_gui_config import GUIConfig
+from .class_architecture import architecture_choices, DEFAULT_ARCHITECTURE
 
 
 class Model:
@@ -17,12 +17,34 @@ class Model:
 
     def initialize_ui_components(self) -> None:
         with gr.Row():
+            self.architecture = gr.Dropdown(
+                label="Architecture",
+                info="Model architecture to train",
+                choices=architecture_choices(),
+                value=self.config.get("architecture", DEFAULT_ARCHITECTURE),
+                interactive=True,
+            )
+
+        with gr.Row():
             self.dataset_config = gr.Textbox(
                 label="Dataset Config",
                 placeholder="Path to the dataset config file",
                 value=str(self.config.get("dataset_config", "")),
             )
 
+        self.group_dit_vae_te = gr.Group(visible=True)
+        with self.group_dit_vae_te:
+            self._initialize_dit_vae_te_fields()
+
+        self.group_perf = gr.Group(visible=True)
+        with self.group_perf:
+            self._initialize_perf_fields()
+
+        self.group_flow_matching = gr.Group(visible=True)
+        with self.group_flow_matching:
+            self._initialize_flow_matching_fields()
+
+    def _initialize_dit_vae_te_fields(self) -> None:
         with gr.Row():
             self.dit = gr.Textbox(
                 label="DiT Checkpoint Path",
@@ -106,6 +128,7 @@ class Model:
                 value=self.config.get("fp8_base", False),
             )
 
+    def _initialize_perf_fields(self) -> None:
         with gr.Row():
             self.blocks_to_swap = gr.Number(
                 label="Blocks to Swap",
@@ -128,6 +151,8 @@ class Model:
                 interactive=True,
             )
 
+    def _initialize_flow_matching_fields(self) -> None:
+        with gr.Row():
             self.timestep_sampling = gr.Dropdown(
                 label="Timestep Sampling Method",
                 choices=["sigma", "uniform", "sigmoid", "shift"],

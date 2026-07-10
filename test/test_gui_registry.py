@@ -44,6 +44,7 @@ ALL_GROUP_NAMES = {
     "kandinsky5_extras",
     "hidream_o1_extras",
     "ideogram4_extras",
+    "krea2_extras",
     "perf",
     "flow_matching",
 }
@@ -113,6 +114,7 @@ def test_apply_architecture_visibility_matches_model_field_groups(key, spec):
         "kandinsky5_extras",
         "hidream_o1_extras",
         "ideogram4_extras",
+        "krea2_extras",
         "perf",
         "flow_matching",
     ]

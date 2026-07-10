@@ -217,6 +217,8 @@ FIELD_NAMES = [
     "use_unconditional_dit_for_lora_sampling",
     "validate_caption_structure",
     "warn_on_caption_issues",
+    "turbo_dit",
+    "turbo_dit_cache",
 ]
 
 
@@ -583,6 +585,16 @@ def train_model(
 
         if param_dict.get("warn_on_caption_issues"):
             run_cache_teo_cmd.append("--warn_on_caption_issues")
+    elif arch.key == "krea2":
+        if param_dict.get("text_encoder"):
+            run_cache_teo_cmd.append("--text_encoder")
+            run_cache_teo_cmd.append(str(param_dict.get("text_encoder")))
+
+        if param_dict.get("caching_teo_text_encoder_dtype"):
+            run_cache_teo_cmd.append("--text_encoder_dtype")
+            run_cache_teo_cmd.append(
+                str(param_dict.get("caching_teo_text_encoder_dtype"))
+            )
     else:
         if param_dict.get("caching_teo_text_encoder1"):
             run_cache_teo_cmd.append("--text_encoder1")
@@ -610,6 +622,7 @@ def train_model(
         "kandinsky5",
         "hidream_o1",
         "ideogram4",
+        "krea2",
     ) and param_dict.get("caching_teo_text_encoder_dtype"):
         run_cache_teo_cmd.append("--text_encoder_dtype")
         run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder_dtype")))
@@ -780,6 +793,7 @@ def apply_architecture(architecture_key):
         gr.Group(visible="kandinsky5_extras" in spec.model_field_groups),
         gr.Group(visible="hidream_o1_extras" in spec.model_field_groups),
         gr.Group(visible="ideogram4_extras" in spec.model_field_groups),
+        gr.Group(visible="krea2_extras" in spec.model_field_groups),
         gr.Group(visible="perf" in spec.model_field_groups),
         gr.Group(visible="flow_matching" in spec.model_field_groups),
     )
@@ -828,6 +842,7 @@ def lora_tab(
                 model.group_kandinsky5_extras,
                 model.group_hidream_o1_extras,
                 model.group_ideogram4_extras,
+                model.group_krea2_extras,
                 model.group_perf,
                 model.group_flow_matching,
             ],
@@ -1072,6 +1087,9 @@ def lora_tab(
         model.use_unconditional_dit_for_lora_sampling,
         model.validate_caption_structure,
         model.warn_on_caption_issues,
+        # krea2
+        model.turbo_dit,
+        model.turbo_dit_cache,
     ]
 
     run_state = gr.Textbox(value=train_state_value, visible=False)

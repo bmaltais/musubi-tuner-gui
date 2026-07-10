@@ -248,6 +248,23 @@ REGISTRY = {
             "warn_on_caption_issues",
         ],
     ),
+    "krea2": ArchitectureSpec(
+        key="krea2",
+        label="Krea 2",
+        train_script="krea2_train_network.py",
+        cache_latents_script="krea2_cache_latents.py",
+        cache_teo_script="krea2_cache_text_encoder_outputs.py",
+        model_field_groups=[
+            "dit_vae",
+            "single_text_encoder",
+            "krea2_extras",
+            "fp8_common",
+            "flow_matching",
+            "perf",
+        ],
+        unsupported_shared_args=set(),
+        extra_args=["text_encoder", "turbo_dit", "turbo_dit_cache"],
+    ),
 }
 
 DEFAULT_ARCHITECTURE = "hunyuanvideo"

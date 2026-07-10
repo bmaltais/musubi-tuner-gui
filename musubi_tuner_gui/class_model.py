@@ -100,6 +100,10 @@ class Model:
         with self.group_ideogram4_extras:
             self._initialize_ideogram4_extras_fields()
 
+        self.group_krea2_extras = gr.Group(visible=True)
+        with self.group_krea2_extras:
+            self._initialize_krea2_extras_fields()
+
         self.group_perf = gr.Group(visible=True)
         with self.group_perf:
             self._initialize_perf_fields()
@@ -491,6 +495,20 @@ class Model:
             self.warn_on_caption_issues = gr.Checkbox(
                 label="Warn on Caption Issues",
                 value=self.config.get("warn_on_caption_issues", False),
+            )
+
+    def _initialize_krea2_extras_fields(self) -> None:
+        """Krea 2-only model fields."""
+        with gr.Row():
+            self.turbo_dit = gr.Textbox(
+                label="Turbo DiT Path",
+                placeholder="Distilled Turbo DiT checkpoint path (for sample generation)",
+                value=self.config.get("turbo_dit", ""),
+            )
+
+            self.turbo_dit_cache = gr.Checkbox(
+                label="Cache Turbo DiT",
+                value=self.config.get("turbo_dit_cache", False),
             )
 
     def _initialize_perf_fields(self) -> None:

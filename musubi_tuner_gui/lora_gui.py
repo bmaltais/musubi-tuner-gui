@@ -829,31 +829,32 @@ def lora_tab(
 
     with gr.Accordion("Model Settings", open=True, elem_classes="preset_background"):
         model = Model(headless=headless, config=config)
+        architecture_groups = [
+            model.group_dit_vae,
+            model.group_dit_dtype,
+            model.group_hv_extras,
+            model.group_dual_text_encoder,
+            model.group_fp8_common,
+            model.group_wan_extras,
+            model.group_single_text_encoder,
+            model.group_model_version,
+            model.group_fp8_vl,
+            model.group_qwen_image_extras,
+            model.group_flux_2_extras,
+            model.group_image_encoder,
+            model.group_hv_1_5_extras,
+            model.group_framepack_extras,
+            model.group_kandinsky5_extras,
+            model.group_hidream_o1_extras,
+            model.group_ideogram4_extras,
+            model.group_krea2_extras,
+            model.group_perf,
+            model.group_flow_matching,
+        ]
         model.architecture.change(
             fn=apply_architecture,
             inputs=[model.architecture],
-            outputs=[
-                model.group_dit_vae,
-                model.group_dit_dtype,
-                model.group_hv_extras,
-                model.group_dual_text_encoder,
-                model.group_fp8_common,
-                model.group_wan_extras,
-                model.group_single_text_encoder,
-                model.group_model_version,
-                model.group_fp8_vl,
-                model.group_qwen_image_extras,
-                model.group_flux_2_extras,
-                model.group_image_encoder,
-                model.group_hv_1_5_extras,
-                model.group_framepack_extras,
-                model.group_kandinsky5_extras,
-                model.group_hidream_o1_extras,
-                model.group_ideogram4_extras,
-                model.group_krea2_extras,
-                model.group_perf,
-                model.group_flow_matching,
-            ],
+            outputs=architecture_groups,
         )
 
     with gr.Accordion("Caching", open=True, elem_classes="samples_background"):
@@ -1129,6 +1130,10 @@ def lora_tab(
         + settings_list,
         outputs=[configuration.config_file_name] + settings_list,
         show_progress=False,
+    ).then(
+        fn=apply_architecture,
+        inputs=[model.architecture],
+        outputs=architecture_groups,
     )
 
     configuration.button_load_config.click(
@@ -1143,6 +1148,10 @@ def lora_tab(
         + settings_list,
         outputs=[configuration.config_file_name] + settings_list,
         show_progress=False,
+    ).then(
+        fn=apply_architecture,
+        inputs=[model.architecture],
+        outputs=architecture_groups,
     )
 
     configuration.button_save_config.click(

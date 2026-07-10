@@ -1204,3 +1204,5 @@ def lora_tab(
         executor.kill_command,
         outputs=[executor.button_run, executor.button_stop_training],
     )
+
+    return model.dataset_config

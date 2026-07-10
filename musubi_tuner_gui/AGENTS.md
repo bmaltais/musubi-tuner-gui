@@ -19,6 +19,8 @@ Python package that implements the Gradio UI for configuring and launching musub
 - `GUIConfig` loads TOML defaults; missing config file is empty dict (no hard fail)
 - `common_gui` holds shared path pickers, config save helpers, and validation utilities
 - Logging goes through `custom_logging.setup_logging` (file: `musubi_tuner_gui.log` at repo root, gitignored)
+- Dataset TOML schema follows `musubi-tuner/docs/dataset_config.md`; `dataset_config_toml.py`/`dataset_config_gui.py` model the documented fields only, and unknown/advanced keys (`fp_1f_*`, `multiple_target`, `qwen_image_edit_*`, etc.) round-trip untouched on open→edit→save
+- `dataset_config_toml.py` is UI-free by design (no Gradio import) so it stays unit-testable; never import `lora_gui` from it or from `dataset_config_gui.py`
 
 ### Module map
 
@@ -40,6 +42,8 @@ Python package that implements the Gradio UI for configuring and launching musub
 | `class_huggingface.py` | HF upload settings |
 | `class_metadata.py` | LoRA metadata fields |
 | `settings_gui.py` | Settings tab (GUI-wide preferences, e.g. info-tooltip toggle) persisted to `config.toml`'s `[settings]` table |
+| `dataset_config_toml.py` | UI-free TOML load/save/validate/parse logic for musubi-tuner dataset config files |
+| `dataset_config_gui.py` | Dataset Config tab: master/detail dataset editor, Open/Save round-trip, validation panel |
 | `common_gui.py` | Shared Gradio helpers and path utilities |
 | `custom_logging.py` | Logger setup |
 
@@ -53,8 +57,8 @@ Python package that implements the Gradio UI for configuring and launching musub
 
 ## Verification
 
-- No automated unit tests for this package yet
-- Manual: `uv run gui.py` from repo root; exercise Open/Save config and dry-run / print command paths
+- Automated: `uv run pytest test/test_dataset_toml.py -v` covers `dataset_config_toml.py` (round-trip, unknown-key preservation, validation rules, parsing helpers). No automated tests yet for the rest of this package.
+- Manual: `uv run gui.py` from repo root; exercise Open/Save config and dry-run / print command paths, and the Dataset Config tab's Open/Save/Add/Remove/Apply flow
 - Manual backend smoke steps documented in `../test/test.MD` (requires checked-out submodule and model weights)
 
 ## Child DOX Index

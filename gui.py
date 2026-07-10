@@ -9,6 +9,7 @@ from musubi_tuner_gui.lora_gui import lora_tab
 from musubi_tuner_gui.custom_logging import setup_logging
 from musubi_tuner_gui.class_gui_config import GUIConfig
 from musubi_tuner_gui.settings_gui import settings_tab
+from musubi_tuner_gui.dataset_config_gui import dataset_config_tab
 import toml
 
 PYTHON = sys.executable
@@ -24,13 +25,25 @@ def read_file_content(file_path):
 
 
 # Function to initialize the Gradio UI interface
-def initialize_ui_interface(config, config_file_path, headless, release_info, readme_content):
+def initialize_ui_interface(
+    config, config_file_path, headless, release_info, readme_content
+):
     # Create the main Gradio Blocks interface
     ui_interface = gr.Blocks(title=f"Musubi Tuner GUI {release_info}")
     with ui_interface:
         # Create tabs for different functionalities
         with gr.Tab("Musubi Tuner"):
-            lora_tab(headless=headless, config=config)
+            training_dataset_config_component = lora_tab(
+                headless=headless, config=config
+            )
+
+        with gr.Tab("Dataset Config"):
+            dataset_config_tab(
+                headless=headless,
+                config=config,
+                config_file_path=config_file_path,
+                training_dataset_config_component=training_dataset_config_component,
+            )
 
         with gr.Tab("Settings"):
             settings_tab(config=config, config_file_path=config_file_path)

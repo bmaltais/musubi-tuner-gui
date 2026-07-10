@@ -12,10 +12,12 @@ Manual integration fixtures for musubi-tuner caching and training: sample image/
 ## Local Contracts
 
 - `config/dataset.toml` points at `./test/dataset/darius kawasaki` and `./test/cache_directory` (paths relative to repo root when commands run from root)
+- `config/dataset.toml` is also a round-trip fixture for `test_dataset_toml.py` (Dataset Config tab): don't casually reformat it — tests assert its loaded values (`resolution = [960, 544]`, `caption_extension = ".txt"`, batch_size 1, one dataset with `image_directory`/`cache_directory`) survive an open→save cycle
 - Dataset pairs are image + matching `.txt` caption (`caption_extension = ".txt"`)
 - `cache_directory/` may hold large `.safetensors` cache tensors; treat as binary fixtures, not source
 - `test/output` is gitignored; created by training runs
 - `test.MD` documents manual CLI smoke tests (cache latents, cache TE outputs, accelerate train)—not a pytest suite
+- `test_dataset_toml.py` is an automated pytest suite for `musubi_tuner_gui/dataset_config_toml.py` (round-trip, unknown-key preservation, validation rules, parse helpers); run via `uv run pytest test/test_dataset_toml.py -v`
 
 ## Work Guidance
 

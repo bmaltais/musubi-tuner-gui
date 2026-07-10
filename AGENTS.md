@@ -94,7 +94,7 @@ Gradio GUI for [kohya-ss/musubi-tuner](https://github.com/kohya-ss/musubi-tuner)
 ### Cross-cutting rules
 
 - Run from repo root so relative paths (`./assets`, `./musubi-tuner`, `./config.toml`, `./test/...`) resolve
-- GUI configures tuner parameters only; dataset TOML preparation remains a musubi-tuner concern (see upstream docs)
+- GUI authors dataset TOML files via the Dataset Config tab, but the *schema* is owned upstream: field names, types, and validation rules must track `musubi-tuner/docs/dataset_config.md` (see `musubi_tuner_gui/AGENTS.md`)
 - Prefer `uv run` over bare `pip`/`python` for app and tool invocation
 - Do not commit secrets (`huggingface_token`, `wandb_api_key`) or large personal weight paths as if they were shared defaults
 - Gitignored runtime: `musubi_tuner_gui.log`, `test/output`, `uv.lock`, `*.npz`

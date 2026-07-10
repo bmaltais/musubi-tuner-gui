@@ -552,7 +552,15 @@ def dataset_config_tab(
         ]  # exclude unknown_keys_note (read-only)
         general_values = values[DETAIL_EDITOR_FIELD_COUNT - 1 :]
 
-        general = _general_from_widgets(*general_values)
+        try:
+            general = _general_from_widgets(*general_values)
+        except ValueError as e:
+            return (
+                datasets,
+                _dataset_summary_rows(datasets),
+                "",
+                f"ERROR: General: {e}",
+            )
 
         if selected_index is None or not (0 <= selected_index < len(datasets)):
             validation = validate_dataset_config(general, datasets)
@@ -634,7 +642,10 @@ def dataset_config_tab(
     )
 
     def do_save(path, datasets, save_as, *general_values):
-        general = _general_from_widgets(*general_values)
+        try:
+            general = _general_from_widgets(*general_values)
+        except ValueError as e:
+            return path, f"ERROR: General: {e}"
         validation = validate_dataset_config(general, datasets)
         errors = [m for m in validation if m.startswith("ERROR:")]
         if errors:

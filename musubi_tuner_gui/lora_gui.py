@@ -470,6 +470,13 @@ def train_model(
         if param_dict.get("model_version"):
             run_cache_teo_cmd.append("--model_version")
             run_cache_teo_cmd.append(str(param_dict.get("model_version")))
+    elif arch.key == "zimage":
+        if param_dict.get("text_encoder"):
+            run_cache_teo_cmd.append("--text_encoder")
+            run_cache_teo_cmd.append(str(param_dict.get("text_encoder")))
+
+        if param_dict.get("fp8_llm"):
+            run_cache_teo_cmd.append("--fp8_llm")
     else:
         if param_dict.get("caching_teo_text_encoder1"):
             run_cache_teo_cmd.append("--text_encoder1")
@@ -486,7 +493,7 @@ def train_model(
         run_cache_teo_cmd.append("--device")
         run_cache_teo_cmd.append(str(param_dict.get("caching_teo_device")))
 
-    if arch.key not in ("wan", "qwen_image") and param_dict.get(
+    if arch.key not in ("wan", "qwen_image", "zimage") and param_dict.get(
         "caching_teo_text_encoder_dtype"
     ):
         run_cache_teo_cmd.append("--text_encoder_dtype")
@@ -614,6 +621,7 @@ def apply_architecture(architecture_key):
         gr.Group(visible="dit_vae" in spec.model_field_groups),
         gr.Group(visible="hv_extras" in spec.model_field_groups),
         gr.Group(visible="wan_extras" in spec.model_field_groups),
+        gr.Group(visible="single_text_encoder" in spec.model_field_groups),
         gr.Group(visible="qwen_image_extras" in spec.model_field_groups),
         gr.Group(visible="perf" in spec.model_field_groups),
         gr.Group(visible="flow_matching" in spec.model_field_groups),
@@ -649,6 +657,7 @@ def lora_tab(
                 model.group_dit_vae,
                 model.group_hv_extras,
                 model.group_wan_extras,
+                model.group_single_text_encoder,
                 model.group_qwen_image_extras,
                 model.group_perf,
                 model.group_flow_matching,

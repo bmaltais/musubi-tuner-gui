@@ -44,6 +44,10 @@ class Model:
         with self.group_wan_extras:
             self._initialize_wan_extras_fields()
 
+        self.group_single_text_encoder = gr.Group(visible=True)
+        with self.group_single_text_encoder:
+            self._initialize_single_text_encoder_fields()
+
         self.group_qwen_image_extras = gr.Group(visible=True)
         with self.group_qwen_image_extras:
             self._initialize_qwen_image_extras_fields()
@@ -207,15 +211,19 @@ class Model:
                 value=self.config.get("vae_cache_cpu", False),
             )
 
-    def _initialize_qwen_image_extras_fields(self) -> None:
-        """Qwen-Image-only model fields (single VL text encoder, model version)."""
+    def _initialize_single_text_encoder_fields(self) -> None:
+        """Shared by every architecture with exactly one text encoder path
+        (Qwen-Image, Z-Image, FLUX.2, and likely most remaining image archs)."""
         with gr.Row():
             self.text_encoder = gr.Textbox(
                 label="Text Encoder Path",
-                placeholder="Path to the Qwen2.5-VL text encoder checkpoint",
+                placeholder="Path to the text encoder checkpoint",
                 value=self.config.get("text_encoder", ""),
             )
 
+    def _initialize_qwen_image_extras_fields(self) -> None:
+        """Qwen-Image-only model fields (VL fp8, model version, layered mode)."""
+        with gr.Row():
             self.model_version = gr.Dropdown(
                 label="Model Version",
                 info="Qwen-Image variant to train",
@@ -225,7 +233,6 @@ class Model:
                 allow_custom_value=True,
             )
 
-        with gr.Row():
             self.fp8_vl = gr.Checkbox(
                 label="Use FP8 for Text Encoder",
                 value=self.config.get("fp8_vl", False),

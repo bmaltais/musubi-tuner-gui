@@ -49,7 +49,13 @@ REGISTRY = {
         train_script="qwen_image_train_network.py",
         cache_latents_script="qwen_image_cache_latents.py",
         cache_teo_script="qwen_image_cache_text_encoder_outputs.py",
-        model_field_groups=["dit_vae", "qwen_image_extras", "flow_matching", "perf"],
+        model_field_groups=[
+            "dit_vae",
+            "single_text_encoder",
+            "qwen_image_extras",
+            "flow_matching",
+            "perf",
+        ],
         unsupported_shared_args=set(),
         extra_args=[
             "text_encoder",
@@ -58,6 +64,16 @@ REGISTRY = {
             "num_layers",
             "remove_first_image_from_target",
         ],
+    ),
+    "zimage": ArchitectureSpec(
+        key="zimage",
+        label="Z-Image",
+        train_script="zimage_train_network.py",
+        cache_latents_script="zimage_cache_latents.py",
+        cache_teo_script="zimage_cache_text_encoder_outputs.py",
+        model_field_groups=["dit_vae", "single_text_encoder", "flow_matching", "perf"],
+        unsupported_shared_args=set(),
+        extra_args=["text_encoder"],
     ),
 }
 

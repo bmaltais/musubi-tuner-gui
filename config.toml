@@ -128,3 +128,6 @@ wandb_api_key = ""
 wandb_run_name = ""
 weighting_scheme = "none"
 xformers = false
+
+[settings]
+dataset_config_edit_path = "D:/musubi-tuner-gui/test/dataset/darius.toml"

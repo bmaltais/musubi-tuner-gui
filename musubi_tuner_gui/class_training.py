@@ -189,3 +189,27 @@ class TrainingSettings:
                 placeholder="File containing prompts to generate sample images",
                 value=self.config.get("sample_prompts", ""),
             )
+
+        with gr.Row():
+            self.compile = gr.Checkbox(
+                label="Use torch.compile",
+                value=self.config.get("compile", False),
+            )
+
+            self.compile_backend = gr.Textbox(
+                label="Compile Backend",
+                placeholder="e.g. inductor (default if left empty)",
+                value=self.config.get("compile_backend", ""),
+            )
+
+            self.compile_mode = gr.Dropdown(
+                label="Compile Mode",
+                choices=[
+                    "default",
+                    "reduce-overhead",
+                    "max-autotune",
+                    "max-autotune-no-cudagraphs",
+                ],
+                value=self.config.get("compile_mode", None),
+                interactive=True,
+            )

@@ -534,6 +534,26 @@ class Model:
                 interactive=True,
             )
 
+        with gr.Row():
+            self.use_pinned_memory_for_block_swap = gr.Checkbox(
+                label="Use Pinned Memory for Block Swap",
+                info="Speeds up block swap at the cost of extra host RAM",
+                value=self.config.get("use_pinned_memory_for_block_swap", False),
+            )
+
+            self.block_swap_h2d_only = gr.Checkbox(
+                label="Block Swap H2D Only",
+                info="Only swap host-to-device, skipping the device-to-host copy",
+                value=self.config.get("block_swap_h2d_only", False),
+            )
+
+            self.block_swap_ring_size = gr.Number(
+                label="Block Swap Ring Size",
+                value=self.config.get("block_swap_ring_size", None),
+                step=1,
+                interactive=True,
+            )
+
     def _initialize_flow_matching_fields(self) -> None:
         with gr.Row():
             self.timestep_sampling = gr.Dropdown(

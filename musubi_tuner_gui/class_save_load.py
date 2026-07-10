@@ -30,6 +30,14 @@ class SaveLoadSettings:
                 interactive=True,
             )
 
+            self.save_precision = gr.Dropdown(
+                label="Save Precision",
+                info="Precision for saved network weights (default: fp32)",
+                choices=["float", "fp32", "fp16", "bf16"],
+                value=self.config.get("save_precision", "fp32"),
+                interactive=True,
+            )
+
         with gr.Row():
             self.resume = gr.Textbox(
                 label="Resume Training State",

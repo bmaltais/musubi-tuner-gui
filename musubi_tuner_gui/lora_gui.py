@@ -219,6 +219,14 @@ FIELD_NAMES = [
     "warn_on_caption_issues",
     "turbo_dit",
     "turbo_dit_cache",
+    # shared new features (Move 11): supported by every registered architecture
+    "save_precision",
+    "use_pinned_memory_for_block_swap",
+    "block_swap_h2d_only",
+    "block_swap_ring_size",
+    "compile",
+    "compile_backend",
+    "compile_mode",
 ]
 
 
@@ -1090,6 +1098,14 @@ def lora_tab(
         # krea2
         model.turbo_dit,
         model.turbo_dit_cache,
+        # shared new features (Move 11)
+        saveLoadSettings.save_precision,
+        model.use_pinned_memory_for_block_swap,
+        model.block_swap_h2d_only,
+        model.block_swap_ring_size,
+        trainingSettings.compile,
+        trainingSettings.compile_backend,
+        trainingSettings.compile_mode,
     ]
 
     run_state = gr.Textbox(value=train_state_value, visible=False)

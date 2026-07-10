@@ -58,6 +58,24 @@ def test_field_names_is_non_empty():
     assert len(FIELD_NAMES) > 0
 
 
+def test_field_names_include_move_11_shared_features():
+    """Move 11 added save_precision, torch.compile, and block-swap perf
+    options as fields shared by every registered architecture (confirmed
+    present in all 12 architectures' --help dumps). This guards against
+    them being silently dropped from FIELD_NAMES/settings_list."""
+    shared_feature_fields = {
+        "save_precision",
+        "compile",
+        "compile_backend",
+        "compile_mode",
+        "use_pinned_memory_for_block_swap",
+        "block_swap_h2d_only",
+        "block_swap_ring_size",
+    }
+    missing = shared_feature_fields - set(FIELD_NAMES)
+    assert not missing, f"Move 11 shared fields missing from FIELD_NAMES: {missing}"
+
+
 @pytest.mark.parametrize("key,spec", REGISTRY.items())
 def test_registry_scripts_exist_on_disk(key, spec):
     for script_attr in ("train_script", "cache_latents_script", "cache_teo_script"):
@@ -167,6 +185,13 @@ def test_gui_actions_print_only_emits_correct_train_script(key, spec, capsys):
         "output_dir": "test/output",
         "output_name": "test_lora",
         "mixed_precision": "bf16",
+        "save_precision": "fp16",
+        "compile": True,
+        "compile_backend": "inductor",
+        "compile_mode": "default",
+        "use_pinned_memory_for_block_swap": True,
+        "block_swap_h2d_only": True,
+        "block_swap_ring_size": 2,
         "architecture": key,
         "extra_accelerate_launch_args": "",
         "additional_parameters": "",

@@ -1,0 +1,24 @@
+usage: zimage_cache_text_encoder_outputs.py [-h] --dataset_config
+                                            DATASET_CONFIG [--device DEVICE]
+                                            [--batch_size BATCH_SIZE]
+                                            [--num_workers NUM_WORKERS]
+                                            [--skip_existing] [--keep_cache]
+                                            --text_encoder TEXT_ENCODER
+                                            [--fp8_llm]
+
+options:
+  -h, --help            show this help message and exit
+  --dataset_config DATASET_CONFIG
+                        path to dataset config .toml file
+  --device DEVICE       device to use, default is cuda if available
+  --batch_size BATCH_SIZE
+                        batch size, override dataset config if dataset batch
+                        size > this
+  --num_workers NUM_WORKERS
+                        number of workers for dataset. default is cpu count-1
+  --skip_existing       skip existing cache files
+  --keep_cache          keep cache files not in dataset
+  --text_encoder TEXT_ENCODER
+                        Qwen3 text encoder checkpoint path or directory
+  --fp8_llm             Use fp8 precision for Qwen3 text encoder (reduces
+                        memory usage)

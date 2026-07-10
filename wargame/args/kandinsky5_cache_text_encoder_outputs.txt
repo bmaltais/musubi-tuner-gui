@@ -1,0 +1,36 @@
+usage: kandinsky5_cache_text_encoder_outputs.py [-h] --dataset_config
+                                                DATASET_CONFIG
+                                                [--device DEVICE]
+                                                [--batch_size BATCH_SIZE]
+                                                [--num_workers NUM_WORKERS]
+                                                [--skip_existing]
+                                                [--keep_cache]
+                                                --text_encoder_qwen
+                                                TEXT_ENCODER_QWEN
+                                                --text_encoder_clip
+                                                TEXT_ENCODER_CLIP
+                                                [--qwen_max_length QWEN_MAX_LENGTH]
+                                                [--clip_max_length CLIP_MAX_LENGTH]
+                                                [--quantized_qwen]
+
+options:
+  -h, --help            show this help message and exit
+  --dataset_config DATASET_CONFIG
+                        path to dataset config .toml file
+  --device DEVICE       device to use, default is cuda if available
+  --batch_size BATCH_SIZE
+                        batch size, override dataset config if dataset batch
+                        size > this
+  --num_workers NUM_WORKERS
+                        number of workers for dataset. default is cpu count-1
+  --skip_existing       skip existing cache files
+  --keep_cache          keep cache files not in dataset
+  --text_encoder_qwen TEXT_ENCODER_QWEN
+                        Qwen2.5-VL checkpoint path
+  --text_encoder_clip TEXT_ENCODER_CLIP
+                        CLIP text encoder checkpoint path
+  --qwen_max_length QWEN_MAX_LENGTH
+                        Max length for Qwen tokenizer
+  --clip_max_length CLIP_MAX_LENGTH
+                        Max length for CLIP tokenizer
+  --quantized_qwen      Load Qwen text encoder in 4bit mode

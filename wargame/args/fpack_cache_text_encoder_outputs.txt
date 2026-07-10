@@ -1,0 +1,27 @@
+W0710 10:27:49.633000 2100 Lib\site-packages\torch\utils\flop_counter.py:29] triton not found; flop counting will not work for triton kernels
+usage: fpack_cache_text_encoder_outputs.py [-h] --dataset_config
+                                           DATASET_CONFIG [--device DEVICE]
+                                           [--batch_size BATCH_SIZE]
+                                           [--num_workers NUM_WORKERS]
+                                           [--skip_existing] [--keep_cache]
+                                           --text_encoder1 TEXT_ENCODER1
+                                           --text_encoder2 TEXT_ENCODER2
+                                           [--fp8_llm]
+
+options:
+  -h, --help            show this help message and exit
+  --dataset_config DATASET_CONFIG
+                        path to dataset config .toml file
+  --device DEVICE       device to use, default is cuda if available
+  --batch_size BATCH_SIZE
+                        batch size, override dataset config if dataset batch
+                        size > this
+  --num_workers NUM_WORKERS
+                        number of workers for dataset. default is cpu count-1
+  --skip_existing       skip existing cache files
+  --keep_cache          keep cache files not in dataset
+  --text_encoder1 TEXT_ENCODER1
+                        Text Encoder 1 directory
+  --text_encoder2 TEXT_ENCODER2
+                        Text Encoder 2 directory
+  --fp8_llm             use fp8 for Text Encoder 1 (LLM)

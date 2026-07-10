@@ -1,0 +1,31 @@
+Trying to import sageattention
+Failed to import sageattention
+usage: flux_kontext_cache_text_encoder_outputs.py [-h] --dataset_config
+                                                  DATASET_CONFIG
+                                                  [--device DEVICE]
+                                                  [--batch_size BATCH_SIZE]
+                                                  [--num_workers NUM_WORKERS]
+                                                  [--skip_existing]
+                                                  [--keep_cache]
+                                                  --text_encoder1
+                                                  TEXT_ENCODER1
+                                                  --text_encoder2
+                                                  TEXT_ENCODER2 [--fp8_t5]
+
+options:
+  -h, --help            show this help message and exit
+  --dataset_config DATASET_CONFIG
+                        path to dataset config .toml file
+  --device DEVICE       device to use, default is cuda if available
+  --batch_size BATCH_SIZE
+                        batch size, override dataset config if dataset batch
+                        size > this
+  --num_workers NUM_WORKERS
+                        number of workers for dataset. default is cpu count-1
+  --skip_existing       skip existing cache files
+  --keep_cache          keep cache files not in dataset
+  --text_encoder1 TEXT_ENCODER1
+                        text encoder (T5XXL) checkpoint path
+  --text_encoder2 TEXT_ENCODER2
+                        text encoder 2 (CLIP-L) checkpoint path
+  --fp8_t5              use fp8 for Text Encoder model

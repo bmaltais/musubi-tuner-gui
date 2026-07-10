@@ -1,0 +1,36 @@
+Trying to import sageattention
+Failed to import sageattention
+usage: qwen_image_cache_text_encoder_outputs.py [-h] --dataset_config
+                                                DATASET_CONFIG
+                                                [--device DEVICE]
+                                                [--batch_size BATCH_SIZE]
+                                                [--num_workers NUM_WORKERS]
+                                                [--skip_existing]
+                                                [--keep_cache] --text_encoder
+                                                TEXT_ENCODER [--fp8_vl]
+                                                [--edit] [--edit_plus]
+                                                [--model_version MODEL_VERSION]
+
+options:
+  -h, --help            show this help message and exit
+  --dataset_config DATASET_CONFIG
+                        path to dataset config .toml file
+  --device DEVICE       device to use, default is cuda if available
+  --batch_size BATCH_SIZE
+                        batch size, override dataset config if dataset batch
+                        size > this
+  --num_workers NUM_WORKERS
+                        number of workers for dataset. default is cpu count-1
+  --skip_existing       skip existing cache files
+  --keep_cache          keep cache files not in dataset
+  --text_encoder TEXT_ENCODER
+                        Text Encoder (Qwen2.5-VL) checkpoint path
+  --fp8_vl              use fp8 for Text Encoder model
+  --edit                Enable Qwen-Image-Edit original, recommend
+                        `--model_version edit` instead
+  --edit_plus           Enable Qwen-Image-Edit-2509 (plus), recommend
+                        `--model_version edit-2509` instead
+  --model_version MODEL_VERSION
+                        training for Qwen-Image model version, e.g.,
+                        'original', 'layered', 'edit', 'edit-2509',
+                        'edit-2511' etc.

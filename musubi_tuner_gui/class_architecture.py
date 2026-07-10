@@ -43,6 +43,22 @@ REGISTRY = {
             "vae_cache_cpu",
         ],
     ),
+    "qwen_image": ArchitectureSpec(
+        key="qwen_image",
+        label="Qwen-Image",
+        train_script="qwen_image_train_network.py",
+        cache_latents_script="qwen_image_cache_latents.py",
+        cache_teo_script="qwen_image_cache_text_encoder_outputs.py",
+        model_field_groups=["dit_vae", "qwen_image_extras", "flow_matching", "perf"],
+        unsupported_shared_args=set(),
+        extra_args=[
+            "text_encoder",
+            "fp8_vl",
+            "model_version",
+            "num_layers",
+            "remove_first_image_from_target",
+        ],
+    ),
 }
 
 DEFAULT_ARCHITECTURE = "hunyuanvideo"

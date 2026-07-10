@@ -26,7 +26,14 @@ from musubi_tuner_gui.lora_gui import FIELD_NAMES, apply_architecture, gui_actio
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MUSUBI_TUNER_DIR = os.path.join(REPO_ROOT, "musubi-tuner")
 
-ALL_GROUP_NAMES = {"dit_vae", "hv_extras", "wan_extras", "perf", "flow_matching"}
+ALL_GROUP_NAMES = {
+    "dit_vae",
+    "hv_extras",
+    "wan_extras",
+    "qwen_image_extras",
+    "perf",
+    "flow_matching",
+}
 
 
 def test_field_names_has_no_duplicates():
@@ -74,11 +81,14 @@ def test_architecture_choices_cover_full_registry():
 
 @pytest.mark.parametrize("key,spec", REGISTRY.items())
 def test_apply_architecture_visibility_matches_model_field_groups(key, spec):
-    dit_vae, hv_extras, wan_extras, perf, flow_matching = apply_architecture(key)
+    dit_vae, hv_extras, wan_extras, qwen_image_extras, perf, flow_matching = (
+        apply_architecture(key)
+    )
     expected = {
         "dit_vae": "dit_vae" in spec.model_field_groups,
         "hv_extras": "hv_extras" in spec.model_field_groups,
         "wan_extras": "wan_extras" in spec.model_field_groups,
+        "qwen_image_extras": "qwen_image_extras" in spec.model_field_groups,
         "perf": "perf" in spec.model_field_groups,
         "flow_matching": "flow_matching" in spec.model_field_groups,
     }
@@ -86,6 +96,7 @@ def test_apply_architecture_visibility_matches_model_field_groups(key, spec):
         "dit_vae": dit_vae.visible,
         "hv_extras": hv_extras.visible,
         "wan_extras": wan_extras.visible,
+        "qwen_image_extras": qwen_image_extras.visible,
         "perf": perf.visible,
         "flow_matching": flow_matching.visible,
     }
@@ -124,6 +135,8 @@ def test_gui_actions_print_only_emits_correct_train_script(key, spec, capsys):
         "t5": "fake/t5.pth",
         "clip": "fake/clip.pth",
         "task": "t2v-14B",
+        "text_encoder": "fake/text_encoder.safetensors",
+        "model_version": "original",
         "network_module": "networks.lora",
         "output_dir": "test/output",
         "output_name": "test_lora",

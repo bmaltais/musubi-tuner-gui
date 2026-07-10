@@ -44,6 +44,10 @@ class Model:
         with self.group_wan_extras:
             self._initialize_wan_extras_fields()
 
+        self.group_qwen_image_extras = gr.Group(visible=True)
+        with self.group_qwen_image_extras:
+            self._initialize_qwen_image_extras_fields()
+
         self.group_perf = gr.Group(visible=True)
         with self.group_perf:
             self._initialize_perf_fields()
@@ -201,6 +205,43 @@ class Model:
             self.vae_cache_cpu = gr.Checkbox(
                 label="Cache VAE features on CPU",
                 value=self.config.get("vae_cache_cpu", False),
+            )
+
+    def _initialize_qwen_image_extras_fields(self) -> None:
+        """Qwen-Image-only model fields (single VL text encoder, model version)."""
+        with gr.Row():
+            self.text_encoder = gr.Textbox(
+                label="Text Encoder Path",
+                placeholder="Path to the Qwen2.5-VL text encoder checkpoint",
+                value=self.config.get("text_encoder", ""),
+            )
+
+            self.model_version = gr.Dropdown(
+                label="Model Version",
+                info="Qwen-Image variant to train",
+                choices=["original", "layered", "edit", "edit-2509"],
+                value=self.config.get("model_version", "original"),
+                interactive=True,
+                allow_custom_value=True,
+            )
+
+        with gr.Row():
+            self.fp8_vl = gr.Checkbox(
+                label="Use FP8 for Text Encoder",
+                value=self.config.get("fp8_vl", False),
+            )
+
+            self.num_layers = gr.Number(
+                label="Number of DiT Layers",
+                info="Default is None (60)",
+                value=self.config.get("num_layers", None),
+                step=1,
+                interactive=True,
+            )
+
+            self.remove_first_image_from_target = gr.Checkbox(
+                label="Remove First Image From Target (layered model)",
+                value=self.config.get("remove_first_image_from_target", False),
             )
 
     def _initialize_perf_fields(self) -> None:

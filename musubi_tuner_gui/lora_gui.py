@@ -189,6 +189,11 @@ FIELD_NAMES = [
     "fp8_scaled",
     "fp8_t5",
     "vae_cache_cpu",
+    "text_encoder",
+    "fp8_vl",
+    "model_version",
+    "num_layers",
+    "remove_first_image_from_target",
 ]
 
 
@@ -425,6 +430,10 @@ def train_model(
         if "i2v" in str(param_dict.get("task", "")):
             run_cache_latent_cmd.append("--i2v")
 
+    if arch.key == "qwen_image" and param_dict.get("model_version"):
+        run_cache_latent_cmd.append("--model_version")
+        run_cache_latent_cmd.append(str(param_dict.get("model_version")))
+
     # Reconstruct the safe command string for display
     log.info(f"Executing command: {run_cache_latent_cmd}")
 
@@ -450,6 +459,17 @@ def train_model(
 
         if param_dict.get("fp8_t5"):
             run_cache_teo_cmd.append("--fp8_t5")
+    elif arch.key == "qwen_image":
+        if param_dict.get("text_encoder"):
+            run_cache_teo_cmd.append("--text_encoder")
+            run_cache_teo_cmd.append(str(param_dict.get("text_encoder")))
+
+        if param_dict.get("fp8_vl"):
+            run_cache_teo_cmd.append("--fp8_vl")
+
+        if param_dict.get("model_version"):
+            run_cache_teo_cmd.append("--model_version")
+            run_cache_teo_cmd.append(str(param_dict.get("model_version")))
     else:
         if param_dict.get("caching_teo_text_encoder1"):
             run_cache_teo_cmd.append("--text_encoder1")
@@ -466,7 +486,9 @@ def train_model(
         run_cache_teo_cmd.append("--device")
         run_cache_teo_cmd.append(str(param_dict.get("caching_teo_device")))
 
-    if arch.key != "wan" and param_dict.get("caching_teo_text_encoder_dtype"):
+    if arch.key not in ("wan", "qwen_image") and param_dict.get(
+        "caching_teo_text_encoder_dtype"
+    ):
         run_cache_teo_cmd.append("--text_encoder_dtype")
         run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder_dtype")))
 
@@ -592,6 +614,7 @@ def apply_architecture(architecture_key):
         gr.Group(visible="dit_vae" in spec.model_field_groups),
         gr.Group(visible="hv_extras" in spec.model_field_groups),
         gr.Group(visible="wan_extras" in spec.model_field_groups),
+        gr.Group(visible="qwen_image_extras" in spec.model_field_groups),
         gr.Group(visible="perf" in spec.model_field_groups),
         gr.Group(visible="flow_matching" in spec.model_field_groups),
     )
@@ -626,6 +649,7 @@ def lora_tab(
                 model.group_dit_vae,
                 model.group_hv_extras,
                 model.group_wan_extras,
+                model.group_qwen_image_extras,
                 model.group_perf,
                 model.group_flow_matching,
             ],
@@ -835,6 +859,12 @@ def lora_tab(
         model.fp8_scaled,
         model.fp8_t5,
         model.vae_cache_cpu,
+        # qwen_image
+        model.text_encoder,
+        model.fp8_vl,
+        model.model_version,
+        model.num_layers,
+        model.remove_first_image_from_target,
     ]
 
     run_state = gr.Textbox(value=train_state_value, visible=False)

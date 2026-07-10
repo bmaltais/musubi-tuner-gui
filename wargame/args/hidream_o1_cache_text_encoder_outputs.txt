@@ -1,0 +1,28 @@
+usage: hidream_o1_cache_text_encoder_outputs.py [-h] --dataset_config
+                                                DATASET_CONFIG
+                                                [--device DEVICE]
+                                                [--batch_size BATCH_SIZE]
+                                                [--num_workers NUM_WORKERS]
+                                                [--skip_existing]
+                                                [--keep_cache]
+                                                [--model_type {full,dev}]
+                                                [--dit DIT] [--fp8_te]
+
+options:
+  -h, --help            show this help message and exit
+  --dataset_config DATASET_CONFIG
+                        path to dataset config .toml file
+  --device DEVICE       device to use, default is cuda if available
+  --batch_size BATCH_SIZE
+                        batch size, override dataset config if dataset batch
+                        size > this
+  --num_workers NUM_WORKERS
+                        number of workers for dataset. default is cpu count-1
+  --skip_existing       skip existing cache files
+  --keep_cache          keep cache files not in dataset
+  --model_type {full,dev}
+                        HiDream-O1 model variant
+  --dit DIT             HiDream-O1 single checkpoint for optional cached text
+                        embeddings
+  --fp8_te              Cache HiDream-O1 text token embeddings in fp8
+                        precision

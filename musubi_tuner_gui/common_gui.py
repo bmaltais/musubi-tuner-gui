@@ -2,8 +2,6 @@ try:
     from tkinter import filedialog, Tk
 except ImportError:
     pass
-# from easygui import msgbox, ynbox
-from typing import Optional
 from .custom_logging import setup_logging
 
 import os
@@ -12,8 +10,6 @@ import gradio as gr
 import sys
 import shlex
 import json
-import math
-import shutil
 import toml
 
 # Set up logging
@@ -22,7 +18,7 @@ log = setup_logging()
 folder_symbol = "\U0001f4c2"  # 📂
 refresh_symbol = "\U0001f504"  # 🔄
 save_style_symbol = "\U0001f4be"  # 💾
-document_symbol = "\U0001F4C4"  # 📄
+document_symbol = "\U0001f4c4"  # 📄
 
 scriptdir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
@@ -32,139 +28,7 @@ if os.name == "nt":
 # insert sd-scripts path into PYTHONPATH
 sys.path.insert(0, os.path.join(scriptdir, "musubi-tuner"))
 
-# define a list of substrings to search for v2 base models
-V2_BASE_MODELS = [
-    "stabilityai/stable-diffusion-2-1-base/blob/main/v2-1_512-ema-pruned",
-    "stabilityai/stable-diffusion-2-1-base",
-    "stabilityai/stable-diffusion-2-base",
-]
-
-# define a list of substrings to search for v_parameterization models
-V_PARAMETERIZATION_MODELS = [
-    "stabilityai/stable-diffusion-2-1/blob/main/v2-1_768-ema-pruned",
-    "stabilityai/stable-diffusion-2-1",
-    "stabilityai/stable-diffusion-2",
-]
-
-# define a list of substrings to v1.x models
-V1_MODELS = [
-    "CompVis/stable-diffusion-v1-4",
-    "runwayml/stable-diffusion-v1-5",
-]
-
-# define a list of substrings to search for SDXL base models
-SDXL_MODELS = [
-    "stabilityai/stable-diffusion-xl-base-1.0",
-    "stabilityai/stable-diffusion-xl-refiner-1.0",
-]
-
-# define a list of substrings to search for
-ALL_PRESET_MODELS = V2_BASE_MODELS + V_PARAMETERIZATION_MODELS + V1_MODELS + SDXL_MODELS
-
 ENV_EXCLUSION = ["COLAB_GPU", "RUNPOD_POD_ID"]
-
-
-def get_executable_path(executable_name: str = None) -> str:
-    """
-    Retrieve and sanitize the path to an executable in the system's PATH.
-
-    Args:
-    executable_name (str): The name of the executable to find.
-
-    Returns:
-    str: The full, sanitized path to the executable if found, otherwise an empty string.
-    """
-    if executable_name:
-        executable_path = shutil.which(executable_name)
-        if executable_path:
-            # Replace backslashes with forward slashes on Windows
-            # if os.name == "nt":
-            #     executable_path = executable_path.replace("\\", "/")
-            return executable_path
-        else:
-            return ""  # Return empty string if the executable is not found
-    else:
-        return ""  # Return empty string if no executable name is provided
-
-
-def calculate_max_train_steps(
-    total_steps: int,
-    train_batch_size: int,
-    gradient_accumulation_steps: int,
-    epoch: int,
-    reg_factor: int,
-):
-    return int(
-        math.ceil(
-            float(total_steps)
-            / int(train_batch_size)
-            / int(gradient_accumulation_steps)
-            * int(epoch)
-            * int(reg_factor)
-        )
-    )
-
-
-# def check_if_model_exist(
-#     output_name: str, output_dir: str, save_model_as: str, headless: bool = False
-# ) -> bool:
-#     """
-#     Checks if a model with the same name already exists and prompts the user to overwrite it if it does.
-
-#     Parameters:
-#     output_name (str): The name of the output model.
-#     output_dir (str): The directory where the model is saved.
-#     save_model_as (str): The format to save the model as.
-#     headless (bool, optional): If True, skips the verification and returns False. Defaults to False.
-
-#     Returns:
-#     bool: True if the model already exists and the user chooses not to overwrite it, otherwise False.
-#     """
-#     if headless:
-#         log.info(
-#             "Headless mode, skipping verification if model already exist... if model already exist it will be overwritten..."
-#         )
-#         return False
-
-#     if save_model_as in ["diffusers", "diffusers_safetendors"]:
-#         ckpt_folder = os.path.join(output_dir, output_name)
-#         if os.path.isdir(ckpt_folder):
-#             msg = f"A diffuser model with the same name {ckpt_folder} already exists. Do you want to overwrite it?"
-#             if not ynbox(msg, "Overwrite Existing Model?"):
-#                 log.info("Aborting training due to existing model with same name...")
-#                 return True
-#     elif save_model_as in ["ckpt", "safetensors"]:
-#         ckpt_file = os.path.join(output_dir, output_name + "." + save_model_as)
-#         if os.path.isfile(ckpt_file):
-#             msg = f"A model with the same file name {ckpt_file} already exists. Do you want to overwrite it?"
-#             if not ynbox(msg, "Overwrite Existing Model?"):
-#                 log.info("Aborting training due to existing model with same name...")
-#                 return True
-#     else:
-#         log.info(
-#             'Can\'t verify if existing model exist when save model is set as "same as source model", continuing to train model...'
-#         )
-#         return False
-
-#     return False
-
-
-# def output_message(msg: str = "", title: str = "", headless: bool = False) -> None:
-#     """
-#     Outputs a message to the user, either in a message box or in the log.
-
-#     Parameters:
-#     msg (str, optional): The message to be displayed. Defaults to an empty string.
-#     title (str, optional): The title of the message box. Defaults to an empty string.
-#     headless (bool, optional): If True, the message is logged instead of displayed in a message box. Defaults to False.
-
-#     Returns:
-#     None
-#     """
-#     if headless:
-#         log.info(msg)
-#     else:
-#         msgbox(msg=msg, title=title)
 
 
 def create_refresh_button(refresh_component, refresh_method, refreshed_args, elem_id):
@@ -312,142 +176,6 @@ def list_files(path, exts=None, all=False):
             yield filename
         else:
             yield filename
-
-
-# def update_my_data(my_data):
-#     # Update the optimizer based on the use_8bit_adam flag
-#     use_8bit_adam = my_data.get("use_8bit_adam", False)
-#     my_data.setdefault("optimizer", "AdamW8bit" if use_8bit_adam else "AdamW")
-
-#     # Update model_list to custom if empty or pretrained_model_name_or_path is not a preset model
-#     model_list = my_data.get("model_list", [])
-#     pretrained_model_name_or_path = my_data.get("pretrained_model_name_or_path", "")
-#     if not model_list or pretrained_model_name_or_path not in ALL_PRESET_MODELS:
-#         my_data["model_list"] = "custom"
-
-#     # Convert values to int if they are strings
-#     for key in [
-#         "clip_skip",
-#         "epoch",
-#         "gradient_accumulation_steps",
-#         "keep_tokens",
-#         "lr_warmup",
-#         "max_data_loader_n_workers",
-#         "max_train_epochs",
-#         "save_every_n_epochs",
-#         "seed",
-#     ]:
-#         value = my_data.get(key)
-#         if value is not None:
-#             try:
-#                 my_data[key] = int(value)
-#             except ValueError:
-#                 # Handle the case where the string is not a valid float
-#                 my_data[key] = int(0)
-
-#     # Convert values to int if they are strings
-#     for key in ["lr_scheduler_num_cycles"]:
-#         value = my_data.get(key)
-#         if value is not None:
-#             try:
-#                 my_data[key] = int(value)
-#             except ValueError:
-#                 # Handle the case where the string is not a valid float
-#                 my_data[key] = int(1)
-
-#     for key in [
-#         "max_train_steps",
-#         "caption_dropout_every_n_epochs"
-#     ]:
-#         value = my_data.get(key)
-#         if value is not None:
-#             try:
-#                 my_data[key] = int(value)
-#             except ValueError:
-#                 # Handle the case where the string is not a valid float
-#                 my_data[key] = int(0)
-
-#     # Convert values to int if they are strings
-#     for key in ["max_token_length"]:
-#         value = my_data.get(key)
-#         if value is not None:
-#             try:
-#                 my_data[key] = int(value)
-#             except ValueError:
-#                 # Handle the case where the string is not a valid float
-#                 my_data[key] = int(75)
-
-#     # Convert values to float if they are strings, correctly handling float representations
-#     for key in [
-#         "adaptive_noise_scale",
-#         "noise_offset",
-#         "learning_rate",
-#         "text_encoder_lr",
-#         "unet_lr",
-#     ]:
-#         value = my_data.get(key)
-#         if value is not None:
-#             try:
-#                 my_data[key] = float(value)
-#             except ValueError:
-#                 # Handle the case where the string is not a valid float
-#                 my_data[key] = float(0.0)
-
-#     # Convert values to float if they are strings, correctly handling float representations
-#     for key in ["lr_scheduler_power"]:
-#         value = my_data.get(key)
-#         if value is not None:
-#             try:
-#                 my_data[key] = float(value)
-#             except ValueError:
-#                 # Handle the case where the string is not a valid float
-#                 my_data[key] = float(1.0)
-
-#     # Update LoRA_type if it is set to LoCon
-#     if my_data.get("LoRA_type", "Standard") == "LoCon":
-#         my_data["LoRA_type"] = "LyCORIS/LoCon"
-
-#     # Update model save choices due to changes for LoRA and TI training
-#     if "save_model_as" in my_data:
-#         if (
-#             my_data.get("LoRA_type") or my_data.get("num_vectors_per_token")
-#         ) and my_data.get("save_model_as") not in ["safetensors", "ckpt"]:
-#             message = "Updating save_model_as to safetensors because the current value in the config file is no longer applicable to {}"
-#             if my_data.get("LoRA_type"):
-#                 log.info(message.format("LoRA"))
-#             if my_data.get("num_vectors_per_token"):
-#                 log.info(message.format("TI"))
-#             my_data["save_model_as"] = "safetensors"
-
-#     # Update xformers if it is set to True and is a boolean
-#     xformers_value = my_data.get("xformers", None)
-#     if isinstance(xformers_value, bool):
-#         if xformers_value:
-#             my_data["xformers"] = "xformers"
-#         else:
-#             my_data["xformers"] = "none"
-
-#     # Convert use_wandb to log_with="wandb" if it is set to True
-#     for key in ["use_wandb"]:
-#         value = my_data.get(key)
-#         if value is not None:
-#             try:
-#                 if value == "True":
-#                     my_data["log_with"] = "wandb"
-#             except ValueError:
-#                 # Handle the case where the string is not a valid float
-#                 pass
-
-#         my_data.pop(key, None)
-
-#     # Replace the lora_network_weights key with network_weights keeping the original value
-#     for key in ["lora_network_weights"]:
-#         value = my_data.get(key)  # Get original value
-#         if value is not None:  # Check if the key exists in the dictionary
-#             my_data["network_weights"] = value
-#             my_data.pop(key, None)
-
-#     return my_data
 
 
 def get_dir_and_file(file_path):
@@ -619,6 +347,62 @@ def get_folder_path(folder_path: str = "") -> str:
         return selected_folder or folder_path
     except Exception as e:
         raise RuntimeError(f"Error initializing folder dialog: {e}") from e
+
+
+def path_field(
+    label: str,
+    value=None,
+    placeholder: str = None,
+    info: str = None,
+    is_folder: bool = False,
+    default_extension: str = None,
+    extension_name: str = "Files",
+    scale: int = 4,
+):
+    """
+    Renders a Textbox paired with a "📁 Browse" button that opens a native
+    file/folder dialog and writes the selection back into the Textbox.
+
+    Parameters:
+    - label, value, placeholder, info: passed straight through to the Textbox.
+    - is_folder: use a folder-picker dialog instead of a file-picker.
+    - default_extension, extension_name: file-picker filter (ignored when
+      is_folder is True, or when default_extension is None, which opens an
+      unfiltered "any file" dialog).
+    - scale: relative width of the Textbox versus the Browse button.
+
+    Returns:
+    - gr.Textbox: the path field. The Browse button is wired but not returned,
+      matching how other field helpers in this codebase only expose the
+      value-carrying component.
+    """
+    with gr.Row():
+        textbox = gr.Textbox(
+            label=label,
+            value=value,
+            placeholder=placeholder,
+            info=info,
+            scale=scale,
+        )
+        button = gr.Button("📁 Browse", scale=1, elem_classes="path-field-browse")
+
+    if is_folder:
+        button.click(
+            fn=get_folder_path, inputs=textbox, outputs=textbox, show_progress=False
+        )
+    elif default_extension:
+        button.click(
+            fn=lambda p: get_file_path(p, default_extension, extension_name),
+            inputs=textbox,
+            outputs=textbox,
+            show_progress=False,
+        )
+    else:
+        button.click(
+            fn=get_any_file_path, inputs=textbox, outputs=textbox, show_progress=False
+        )
+
+    return textbox
 
 
 def get_saveasfile_path(
@@ -841,317 +625,9 @@ def has_ext_files(folder_path: str, file_extension: str) -> bool:
     return False
 
 
-# def find_replace(
-#     folder_path: str = "",
-#     caption_file_ext: str = ".caption",
-#     search_text: str = "",
-#     replace_text: str = "",
-# ) -> None:
-#     """
-#     Efficiently finds and replaces specified text across all caption files in a given folder.
-
-#     This function iterates through each caption file matching the specified extension within the given folder path, replacing all occurrences of the search text with the replacement text. It ensures that the operation only proceeds if the search text is provided and there are caption files to process.
-
-#     Args:
-#         folder_path (str, optional): The directory path where caption files are located. Defaults to an empty string, which implies the current directory.
-#         caption_file_ext (str, optional): The file extension for caption files. Defaults to ".caption".
-#         search_text (str, optional): The text to search for within the caption files. Defaults to an empty string.
-#         replace_text (str, optional): The text to use as a replacement. Defaults to an empty string.
-#     """
-#     # Log the start of the caption find/replace operation
-#     log.info("Running caption find/replace")
-
-#     # Validate the presence of caption files and the search text
-#     if not search_text or not has_ext_files(folder_path, caption_file_ext):
-#         # Display a message box indicating no files were found
-#         msgbox(
-#             f"No files with extension {caption_file_ext} were found in {folder_path}..."
-#         )
-#         log.warning(
-#             "No files with extension {caption_file_ext} were found in {folder_path}..."
-#         )
-#         # Exit the function early
-#         return
-
-#     # Check if the caption file extension is one of the supported extensions
-#     if caption_file_ext not in [".caption", ".txt", ".txt2", ".cap"]:
-#         log.error(
-#             f"Unsupported file extension {caption_file_ext} for caption files. Please use .caption, .txt, .txt2, or .cap."
-#         )
-#         # Exit the function early
-#         return
-
-#     # Check if the folder path exists
-#     if not os.path.exists(folder_path):
-#         log.error(f"The provided path '{folder_path}' is not a valid folder.")
-#         return
-
-#     # List all caption files in the folder
-#     try:
-#         caption_files = [
-#             f for f in os.listdir(folder_path) if f.endswith(caption_file_ext)
-#         ]
-#     except Exception as e:
-#         log.error(f"Error accessing folder {folder_path}: {e}")
-#         return
-
-#     # Iterate over the list of caption files
-#     for caption_file in caption_files:
-#         # Construct the full path for each caption file
-#         file_path = os.path.join(folder_path, caption_file)
-#         # Read and replace text
-#         try:
-#             with open(file_path, "r", errors="ignore", encoding="utf-8") as f:
-#                 content = f.read().replace(search_text, replace_text)
-
-#             # Write the updated content back to the file
-#             with open(file_path, "w", encoding="utf-8") as f:
-#                 f.write(content)
-#         except Exception as e:
-#             log.error(f"Error processing file {file_path}: {e}")
-
-
-# def color_aug_changed(color_aug):
-#     """
-#     Handles the change in color augmentation checkbox.
-
-#     This function is called when the color augmentation checkbox is toggled.
-#     If color augmentation is enabled, it disables the cache latent checkbox
-#     and returns a new checkbox with the value set to False and interactive set to False.
-#     If color augmentation is disabled, it returns a new checkbox with interactive set to True.
-
-#     Args:
-#         color_aug (bool): The new state of the color augmentation checkbox.
-
-#     Returns:
-#         gr.Checkbox: A new checkbox with the appropriate settings based on the color augmentation state.
-#     """
-#     # If color augmentation is enabled, disable cache latent and return a new checkbox
-#     if color_aug:
-#         msgbox(
-#             'Disabling "Cache latent" because "Color augmentation" has been selected...'
-#         )
-#         return gr.Checkbox(value=False, interactive=False)
-#     # If color augmentation is disabled, return a new checkbox with interactive set to True
-#     else:
-#         return gr.Checkbox(interactive=True)
-
-
-# def set_pretrained_model_name_or_path_input(
-#     pretrained_model_name_or_path, refresh_method=None
-# ):
-#     """
-#     Sets the pretrained model name or path input based on the model type.
-
-#     This function checks the type of the pretrained model and sets the appropriate
-#     parameters for the model. It also handles the case where the model list is
-#     set to 'custom' and a refresh method is provided.
-
-#     Args:
-#         pretrained_model_name_or_path (str): The name or path of the pretrained model.
-#         refresh_method (callable, optional): A function to refresh the model list.
-
-#     Returns:
-#         tuple: A tuple containing the Dropdown widget, v2 checkbox, v_parameterization checkbox,
-#                and sdxl checkbox.
-#     """
-#     # Check if the given pretrained_model_name_or_path is in the list of SDXL models
-#     if pretrained_model_name_or_path in SDXL_MODELS:
-#         log.info("SDXL model selected. Setting sdxl parameters")
-#         v2 = gr.Checkbox(value=False, visible=False)
-#         v_parameterization = gr.Checkbox(value=False, visible=False)
-#         sdxl = gr.Checkbox(value=True, visible=False)
-#         sd3 = gr.Checkbox(value=False, visible=False)
-#         flux1 = gr.Checkbox(value=False, visible=False)
-#         return (
-#             gr.Dropdown(),
-#             v2,
-#             v_parameterization,
-#             sdxl,
-#             sd3,
-#             flux1,
-#         )
-
-#     # Check if the given pretrained_model_name_or_path is in the list of V2 base models
-#     if pretrained_model_name_or_path in V2_BASE_MODELS:
-#         log.info("SD v2 base model selected. Setting --v2 parameter")
-#         v2 = gr.Checkbox(value=True, visible=False)
-#         v_parameterization = gr.Checkbox(value=False, visible=False)
-#         sdxl = gr.Checkbox(value=False, visible=False)
-#         sd3 = gr.Checkbox(value=False, visible=False)
-#         flux1 = gr.Checkbox(value=False, visible=False)
-#         return (
-#             gr.Dropdown(),
-#             v2,
-#             v_parameterization,
-#             sdxl,
-#             sd3,
-#             flux1,
-#         )
-
-#     # Check if the given pretrained_model_name_or_path is in the list of V parameterization models
-#     if pretrained_model_name_or_path in V_PARAMETERIZATION_MODELS:
-#         log.info(
-#             "SD v2 model selected. Setting --v2 and --v_parameterization parameters"
-#         )
-#         v2 = gr.Checkbox(value=True, visible=False)
-#         v_parameterization = gr.Checkbox(value=True, visible=False)
-#         sdxl = gr.Checkbox(value=False, visible=False)
-#         sd3 = gr.Checkbox(value=False, visible=False)
-#         flux1 = gr.Checkbox(value=False, visible=False)
-#         return (
-#             gr.Dropdown(),
-#             v2,
-#             v_parameterization,
-#             sdxl,
-#             sd3,
-#             flux1,
-#         )
-
-#     # Check if the given pretrained_model_name_or_path is in the list of V1 models
-#     if pretrained_model_name_or_path in V1_MODELS:
-#         log.info(f"{pretrained_model_name_or_path} model selected.")
-#         v2 = gr.Checkbox(value=False, visible=False)
-#         v_parameterization = gr.Checkbox(value=False, visible=False)
-#         sdxl = gr.Checkbox(value=False, visible=False)
-#         sd3 = gr.Checkbox(value=False, visible=False)
-#         flux1 = gr.Checkbox(value=False, visible=False)
-#         return (
-#             gr.Dropdown(),
-#             v2,
-#             v_parameterization,
-#             sdxl,
-#             sd3,
-#             flux1,
-#         )
-
-#     # Check if the model_list is set to 'custom'
-#     v2 = gr.Checkbox(visible=True)
-#     v_parameterization = gr.Checkbox(visible=True)
-#     sdxl = gr.Checkbox(visible=True)
-#     sd3 = gr.Checkbox(visible=True)
-#     flux1 = gr.Checkbox(visible=True)
-
-#     # Auto-detect model type if safetensors file path is given
-#     if pretrained_model_name_or_path.lower().endswith(".safetensors"):
-#         detect = SDModelType(pretrained_model_name_or_path)
-#         v2 = gr.Checkbox(value=detect.Is_SD2(), visible=True)
-#         sdxl = gr.Checkbox(value=detect.Is_SDXL(), visible=True)
-#         sd3 = gr.Checkbox(value=detect.Is_SD3(), visible=True)
-#         flux1 = gr.Checkbox(value=detect.Is_FLUX1(), visible=True)
-#         #TODO: v_parameterization
-
-#     # If a refresh method is provided, use it to update the choices for the Dropdown widget
-#     if refresh_method is not None:
-#         args = dict(
-#             choices=refresh_method(pretrained_model_name_or_path),
-#         )
-#     else:
-#         args = {}
-#     return (
-#         gr.Dropdown(**args),
-#         v2,
-#         v_parameterization,
-#         sdxl,
-#         sd3,
-#         flux1,
-#     )
-
-
 ###
 ### Gradio common GUI section
 ###
-
-
-def get_int_or_default(kwargs, key, default_value=0):
-    """
-    Retrieves an integer value from the provided kwargs dictionary based on the given key. If the key is not found,
-    or the value cannot be converted to an integer, a default value is returned.
-
-    Args:
-        kwargs (dict): A dictionary of keyword arguments.
-        key (str): The key to retrieve from the kwargs dictionary.
-        default_value (int, optional): The default value to return if the key is not found or the value is not an integer.
-
-    Returns:
-        int: The integer value if found and valid, otherwise the default value.
-    """
-    # Try to retrieve the value for the specified key from the kwargs.
-    # Use the provided default_value if the key does not exist.
-    value = kwargs.get(key, default_value)
-    try:
-        # Try to convert the value to a integer. This should works for int,
-        # and strings that represent a valid floating-point number.
-        return int(value)
-    except (ValueError, TypeError):
-        # If the conversion fails (for example, the value is a string that cannot
-        # be converted to an integer), log the issue and return the provided default_value.
-        log.info(
-            f"{key} is not an int or cannot be converted to int, setting value to {default_value}"
-        )
-        return default_value
-
-
-def get_float_or_default(kwargs, key, default_value=0.0):
-    """
-    Retrieves a float value from the provided kwargs dictionary based on the given key. If the key is not found,
-    or the value cannot be converted to a float, a default value is returned.
-
-    This function attempts to convert the value to a float, which works for integers, floats, and strings that
-    represent valid floating-point numbers. If the conversion fails, the issue is logged, and the provided
-    default_value is returned.
-
-    Args:
-        kwargs (dict): A dictionary of keyword arguments.
-        key (str): The key to retrieve from the kwargs dictionary.
-        default_value (float, optional): The default value to return if the key is not found or the value is not a float.
-
-    Returns:
-        float: The float value if found and valid, otherwise the default value.
-    """
-    # Try to retrieve the value for the specified key from the kwargs.
-    # Use the provided default_value if the key does not exist.
-    value = kwargs.get(key, default_value)
-
-    try:
-        # Try to convert the value to a float. This should works for int, float,
-        # and strings that represent a valid floating-point number.
-        return float(value)
-    except ValueError:
-        # If the conversion fails (for example, the value is a string that cannot
-        # be converted to a float), log the issue and return the provided default_value.
-        log.info(
-            f"{key} is not an int, float or a valid string for conversion, setting value to {default_value}"
-        )
-        return default_value
-
-
-def get_str_or_default(kwargs, key, default_value=""):
-    """
-    Retrieves a string value from the provided kwargs dictionary based on the given key. If the key is not found,
-    or the value is not a string, a default value is returned.
-
-    Args:
-        kwargs (dict): A dictionary of keyword arguments.
-        key (str): The key to retrieve from the kwargs dictionary.
-        default_value (str, optional): The default value to return if the key is not found or the value is not a string.
-
-    Returns:
-        str: The string value if found and valid, otherwise the default value.
-    """
-    # Try to retrieve the value for the specified key from the kwargs.
-    # Use the provided default_value if the key does not exist.
-    value = kwargs.get(key, default_value)
-
-    # Check if the retrieved value is already a string.
-    if isinstance(value, str):
-        return value
-    else:
-        # If the value is not a string (e.g., int, float, or any other type),
-        # convert it to a string and return the converted value.
-        return str(value)
-
-
 def run_cmd_advanced_training(run_cmd: list = [], **kwargs):
     """
     This function, run_cmd_advanced_training, dynamically constructs a command line string for advanced training
@@ -1262,6 +738,7 @@ def verify_image_folder_pattern(folder_path: str) -> bool:
     # Return True to indicate that the folder pattern is valid
     return return_value
 
+
 def SaveConfigFile(
     parameters,
     file_path: str,
@@ -1292,7 +769,8 @@ def SaveConfigFile(
 
     with open(file_path, "w", encoding="utf-8") as file:
         toml.dump(variables, file)
-        
+
+
 def SaveConfigFileToRun(
     parameters,
     file_path: str,
@@ -1353,68 +831,6 @@ def save_to_file(content):
         print(f"Error: Could not create 'logs' directory - {e}")
 
 
-def check_duplicate_filenames(
-    folder_path: str,
-    image_extension: list = [".gif", ".png", ".jpg", ".jpeg", ".webp"],
-) -> None:
-    """
-    Checks for duplicate image filenames in a given folder path.
-
-    This function walks through the directory structure of the given folder path,
-    and logs a warning if it finds files with the same name but different image extensions.
-    This can lead to issues during training if not handled properly.
-
-    Args:
-        folder_path (str): The path to the folder containing image files.
-        image_extension (list, optional): List of image file extensions to consider.
-            Defaults to [".gif", ".png", ".jpg", ".jpeg", ".webp"].
-    """
-    # Initialize a flag to track if duplicates are found
-    duplicate = False
-
-    # Log the start of the duplicate check
-    log.info(
-        f"Checking for duplicate image filenames in training data directory {folder_path}..."
-    )
-
-    # Walk through the directory structure
-    for root, dirs, files in os.walk(folder_path):
-        # Initialize a dictionary to store filenames and their paths
-        filenames = {}
-
-        # Process each file in the current directory
-        for file in files:
-            # Split the filename and extension
-            filename, extension = os.path.splitext(file)
-
-            # Check if the extension is in the list of image extensions
-            if extension.lower() in image_extension:
-                # Construct the full path to the file
-                full_path = os.path.join(root, file)
-
-                # Check if the filename is already in the dictionary
-                if filename in filenames:
-                    # If it is, compare the existing path with the current path
-                    existing_path = filenames[filename]
-                    if existing_path != full_path:
-                        # Log a warning if the paths are different
-                        log.warning(
-                            f"...same filename '{filename}' with different image extension found. This will cause training issues. Rename one of the file."
-                        )
-                        log.warning(f"  Existing file: {existing_path}")
-                        log.warning(f"  Current file: {full_path}")
-
-                        # Set the duplicate flag to True
-                        duplicate = True
-                else:
-                    # If not, add the filename and path to the dictionary
-                    filenames[filename] = full_path
-
-    # If no duplicates were found, log a message indicating validation
-    if not duplicate:
-        log.info("...valid")
-
-
 def validate_file_path(file_path: str) -> bool:
     if file_path == "":
         return True
@@ -1464,61 +880,6 @@ def validate_toml_file(file_path: str) -> bool:
         return False
     log.info(f"{msg} SUCCESS")
     return True
-
-
-# def validate_model_path(pretrained_model_name_or_path: str) -> bool:
-#     """
-#     Validates the pretrained model name or path against Hugging Face models or local paths.
-
-#     Args:
-#         pretrained_model_name_or_path (str): The pretrained model name or path to validate.
-
-#     Returns:
-#         bool: True if the path is a valid Hugging Face model or exists locally; False otherwise.
-#     """
-#     from .class_source_model import default_models
-
-#     msg = f"Validating {pretrained_model_name_or_path} existence..."
-
-#     # Check if it matches the Hugging Face model pattern
-#     if re.match(r"^[\w-]+\/[\w-]+$", pretrained_model_name_or_path):
-#         log.info(f"{msg} SKIPPING: huggingface.co model")
-#     elif pretrained_model_name_or_path in default_models:
-#         log.info(f"{msg} SUCCESS")
-#     else:
-#         # If not one of the default models, check if it's a valid local path
-#         if not validate_file_path(
-#             pretrained_model_name_or_path
-#         ) and not validate_folder_path(pretrained_model_name_or_path):
-#             log.info(f"{msg} FAILURE: not a valid file or folder")
-#             return False
-#     return True
-
-
-def is_file_writable(file_path: str) -> bool:
-    """
-    Checks if a file is writable.
-
-    Args:
-        file_path (str): The path to the file to be checked.
-
-    Returns:
-        bool: True if the file is writable, False otherwise.
-    """
-    # If the file does not exist, it is considered writable
-    if not os.path.exists(file_path):
-        return True
-
-    try:
-        # Attempt to open the file in append mode to check if it can be written to
-        with open(file_path, "a", encoding="utf-8"):
-            pass
-        # If the file can be opened, it is considered writable
-        return True
-    except IOError as e:
-        # If an IOError occurs, the file cannot be written to
-        log.info(f"Error: {e}. File '{file_path}' is not writable.")
-        return False
 
 
 def print_command_and_toml(run_cmd, tmpfilename=""):

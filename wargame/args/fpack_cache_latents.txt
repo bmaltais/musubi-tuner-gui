@@ -1,0 +1,65 @@
+W0710 10:27:41.486000 33536 Lib\site-packages\torch\utils\flop_counter.py:29] triton not found; flop counting will not work for triton kernels
+usage: fpack_cache_latents.py [-h] --dataset_config DATASET_CONFIG [--vae VAE]
+                              [--vae_dtype VAE_DTYPE] [--device DEVICE]
+                              [--batch_size BATCH_SIZE]
+                              [--num_workers NUM_WORKERS] [--skip_existing]
+                              [--keep_cache]
+                              [--debug_mode {image,console,video}]
+                              [--console_width CONSOLE_WIDTH]
+                              [--console_back CONSOLE_BACK]
+                              [--console_num_images CONSOLE_NUM_IMAGES]
+                              [--disable_cudnn_backend] [--vae_tiling]
+                              [--vae_chunk_size VAE_CHUNK_SIZE]
+                              [--vae_spatial_tile_sample_min_size VAE_SPATIAL_TILE_SAMPLE_MIN_SIZE]
+                              --image_encoder IMAGE_ENCODER [--f1]
+                              [--one_frame] [--one_frame_no_2x]
+                              [--one_frame_no_4x]
+
+options:
+  -h, --help            show this help message and exit
+  --dataset_config DATASET_CONFIG
+                        path to dataset config .toml file
+  --vae VAE             path to vae checkpoint
+  --vae_dtype VAE_DTYPE
+                        data type for VAE, default depends on model, e.g.,
+                        float16
+  --device DEVICE       device to use, default is cuda if available
+  --batch_size BATCH_SIZE
+                        batch size, override dataset config if dataset batch
+                        size > this
+  --num_workers NUM_WORKERS
+                        number of workers for dataset. default is cpu count-1
+  --skip_existing       skip existing cache files
+  --keep_cache          keep cache files not in dataset
+  --debug_mode {image,console,video}
+                        debug mode
+  --console_width CONSOLE_WIDTH
+                        debug mode: console width
+  --console_back CONSOLE_BACK
+                        debug mode: console background color, one of
+                        ascii_magic.Back
+  --console_num_images CONSOLE_NUM_IMAGES
+                        debug mode: not interactive, number of images to show
+                        for each dataset
+  --disable_cudnn_backend
+                        Disable CUDNN PyTorch backend. May be useful for AMD
+                        GPUs.
+  --vae_tiling          enable spatial tiling for VAE, default is False. If
+                        vae_spatial_tile_sample_min_size is set, this is
+                        automatically enabled
+  --vae_chunk_size VAE_CHUNK_SIZE
+                        chunk size for CausalConv3d in VAE
+  --vae_spatial_tile_sample_min_size VAE_SPATIAL_TILE_SAMPLE_MIN_SIZE
+                        spatial tile sample min size for VAE, default 256
+  --image_encoder IMAGE_ENCODER
+                        Image encoder (CLIP) checkpoint path or directory
+  --f1                  Generate cache for F1 model (vanilla (autoregressive)
+                        sampling) instead of Inverted anti-drifting (plain
+                        FramePack)
+  --one_frame           Generate cache for one frame training (single frame,
+                        single section). latent_window_size is used as the
+                        index of the target frame.
+  --one_frame_no_2x     Do not use clean_latents_2x and
+                        clean_latent_2x_indices for one frame training.
+  --one_frame_no_4x     Do not use clean_latents_4x and
+                        clean_latent_4x_indices for one frame training.

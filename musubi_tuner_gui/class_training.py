@@ -1,6 +1,8 @@
 import gradio as gr
 import toml
 from .class_gui_config import GUIConfig
+from .common_gui import path_field
+
 
 class TrainingSettings:
     def __init__(
@@ -46,30 +48,53 @@ class TrainingSettings:
             )
 
         with gr.Row():
+            self.compile = gr.Checkbox(
+                label="Use torch.compile",
+                value=self.config.get("compile", False),
+            )
+
+            self.compile_backend = gr.Textbox(
+                label="Compile Backend",
+                placeholder="e.g. inductor (default if left empty)",
+                value=self.config.get("compile_backend", ""),
+            )
+
+            self.compile_mode = gr.Dropdown(
+                label="Compile Mode",
+                choices=[
+                    "default",
+                    "reduce-overhead",
+                    "max-autotune",
+                    "max-autotune-no-cudagraphs",
+                ],
+                value=self.config.get("compile_mode", None),
+                interactive=True,
+            )
+
+        with gr.Row():
             self.max_train_steps = gr.Number(
                 label="Max Training Steps",
                 info="Maximum number of training steps",
                 value=self.config.get("max_train_steps", 1600),
                 interactive=True,
-                
             )
 
             self.max_train_epochs = gr.Number(
                 label="Max Training Epochs",
-                info='Overrides max_train_steps',
+                info="Overrides max_train_steps",
                 value=self.config.get("max_train_epochs", None),
             )
 
             self.max_data_loader_n_workers = gr.Number(
                 label="Max DataLoader Workers",
-                info='Lower values reduce RAM usage and speed up epoch start',
+                info="Lower values reduce RAM usage and speed up epoch start",
                 value=self.config.get("max_data_loader_n_workers", 8),
                 interactive=True,
             )
 
             self.persistent_data_loader_workers = gr.Checkbox(
                 label="Persistent DataLoader Workers",
-                info='Keep DataLoader workers alive between epochs',
+                info="Keep DataLoader workers alive between epochs",
                 value=self.config.get("persistent_data_loader_workers", False),
             )
 
@@ -93,13 +118,14 @@ class TrainingSettings:
                 interactive=True,
             )
 
-        with gr.Row():
-            self.logging_dir = gr.Textbox(
-                label="Logging Directory",
-                placeholder="Directory for TensorBoard logs",
-                value=self.config.get("logging_dir", ""),
-            )
+        self.logging_dir = path_field(
+            label="Logging Directory",
+            placeholder="Directory for TensorBoard logs",
+            value=self.config.get("logging_dir", ""),
+            is_folder=True,
+        )
 
+        with gr.Row():
             self.log_with = gr.Dropdown(
                 label="Logging Tool",
                 info="Select the logging tool to use",
@@ -135,13 +161,13 @@ class TrainingSettings:
                 value=self.config.get("wandb_api_key", ""),
             )
 
-        with gr.Row():
-            self.log_tracker_config = gr.Textbox(
-                label="Log Tracker Config",
-                placeholder="Path to the tracker config file for logging",
-                value=self.config.get("log_tracker_config", ""),
-            )
+        self.log_tracker_config = path_field(
+            label="Log Tracker Config",
+            placeholder="Path to the tracker config file for logging",
+            value=self.config.get("log_tracker_config", ""),
+        )
 
+        with gr.Row():
             self.log_config = gr.Checkbox(
                 label="Log Training Configuration",
                 info="Log the training configuration to the logging directory",
@@ -183,9 +209,8 @@ class TrainingSettings:
                 value=self.config.get("sample_every_n_epochs", None),
             )
 
-        with gr.Row():
-            self.sample_prompts = gr.Textbox(
-                label="Sample Prompts",
-                placeholder="File containing prompts to generate sample images",
-                value=self.config.get("sample_prompts", ""),
-            )
+        self.sample_prompts = path_field(
+            label="Sample Prompts",
+            placeholder="File containing prompts to generate sample images",
+            value=self.config.get("sample_prompts", ""),
+        )

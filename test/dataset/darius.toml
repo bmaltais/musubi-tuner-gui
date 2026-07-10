@@ -1,0 +1,13 @@
+[[datasets]]
+image_directory = "D:/musubi-tuner-gui/test/dataset/darius kawasaki"
+caption_extension = ".txt"
+enable_bucket = false
+bucket_no_upscale = false
+no_resize_control = false
+
+[general]
+resolution = [ 960, 544,]
+batch_size = 0
+num_repeats = 0
+enable_bucket = true
+bucket_no_upscale = false

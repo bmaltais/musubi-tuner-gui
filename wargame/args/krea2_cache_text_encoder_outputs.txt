@@ -1,0 +1,25 @@
+usage: krea2_cache_text_encoder_outputs.py [-h] --dataset_config
+                                           DATASET_CONFIG [--device DEVICE]
+                                           [--batch_size BATCH_SIZE]
+                                           [--num_workers NUM_WORKERS]
+                                           [--skip_existing] [--keep_cache]
+                                           --text_encoder TEXT_ENCODER
+                                           [--text_encoder_dtype TEXT_ENCODER_DTYPE]
+
+options:
+  -h, --help            show this help message and exit
+  --dataset_config DATASET_CONFIG
+                        path to dataset config .toml file
+  --device DEVICE       device to use, default is cuda if available
+  --batch_size BATCH_SIZE
+                        batch size, override dataset config if dataset batch
+                        size > this
+  --num_workers NUM_WORKERS
+                        number of workers for dataset. default is cpu count-1
+  --skip_existing       skip existing cache files
+  --keep_cache          keep cache files not in dataset
+  --text_encoder TEXT_ENCODER
+                        Qwen3-VL-4B text encoder safetensors path (official or
+                        ComfyUI key layout)
+  --text_encoder_dtype TEXT_ENCODER_DTYPE
+                        data type for the text encoder, default is bfloat16

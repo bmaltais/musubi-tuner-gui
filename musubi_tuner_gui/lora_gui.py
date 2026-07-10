@@ -15,6 +15,7 @@ from .class_model import Model
 from .class_network import Network
 from .class_optimizer_and_scheduler import OptimizerAndScheduler
 from .class_save_load import SaveLoadSettings
+from .class_tensorboard import TensorboardManager
 from .class_text_encoder_outputs_caching import TextEncoderOutputsCaching
 from .class_training import TrainingSettings
 from .common_gui import (
@@ -29,6 +30,7 @@ from .common_gui import (
 )
 from .class_huggingface import HuggingFace
 from .class_metadata import MetaData
+from .class_architecture import get_architecture
 from .custom_logging import setup_logging
 
 # Set up logging
@@ -42,6 +44,193 @@ huggingface = None
 
 train_state_value = time.time()
 
+# Single source of truth for the order in which widget values are passed to
+# gui_actions(): must stay in the same order as the settings_list built in
+# lora_tab(). Both are derived from this same list so they can never drift
+# apart silently.
+FIELD_NAMES = [
+    "mixed_precision",
+    "num_cpu_threads_per_process",
+    "num_processes",
+    "num_machines",
+    "multi_gpu",
+    "gpu_ids",
+    "main_process_port",
+    "dynamo_backend",
+    "dynamo_mode",
+    "dynamo_use_fullgraph",
+    "dynamo_use_dynamic",
+    "extra_accelerate_launch_args",
+    "additional_parameters",
+    "dataset_config",
+    "sdpa",
+    "flash_attn",
+    "sage_attn",
+    "xformers",
+    "split_attn",
+    "max_train_steps",
+    "max_train_epochs",
+    "max_data_loader_n_workers",
+    "persistent_data_loader_workers",
+    "seed",
+    "gradient_checkpointing",
+    "gradient_accumulation_steps",
+    "logging_dir",
+    "log_with",
+    "log_prefix",
+    "log_tracker_name",
+    "wandb_run_name",
+    "log_tracker_config",
+    "wandb_api_key",
+    "log_config",
+    "ddp_timeout",
+    "ddp_gradient_as_bucket_view",
+    "ddp_static_graph",
+    "sample_every_n_steps",
+    "sample_at_first",
+    "sample_every_n_epochs",
+    "sample_prompts",
+    "caching_latent_device",
+    "caching_latent_batch_size",
+    "caching_latent_num_workers",
+    "caching_latent_skip_existing",
+    "caching_latent_keep_cache",
+    "caching_latent_debug_mode",
+    "caching_latent_console_width",
+    "caching_latent_console_back",
+    "caching_latent_console_num_images",
+    "caching_teo_text_encoder1",
+    "caching_teo_text_encoder2",
+    "caching_teo_text_encoder_dtype",
+    "caching_teo_device",
+    "caching_teo_fp8_llm",
+    "caching_teo_batch_size",
+    "caching_teo_num_workers",
+    "caching_teo_skip_existing",
+    "caching_teo_keep_cache",
+    "optimizer_type",
+    "optimizer_args",
+    "learning_rate",
+    "max_grad_norm",
+    "lr_scheduler",
+    "lr_warmup_steps",
+    "lr_decay_steps",
+    "lr_scheduler_num_cycles",
+    "lr_scheduler_power",
+    "lr_scheduler_timescale",
+    "lr_scheduler_min_lr_ratio",
+    "lr_scheduler_type",
+    "lr_scheduler_args",
+    "dit",
+    "dit_dtype",
+    "vae",
+    "vae_dtype",
+    "vae_tiling",
+    "vae_chunk_size",
+    "vae_spatial_tile_sample_min_size",
+    "text_encoder1",
+    "text_encoder2",
+    "fp8_llm",
+    "fp8_base",
+    "blocks_to_swap",
+    "img_in_txt_in_offloading",
+    "guidance_scale",
+    "timestep_sampling",
+    "discrete_flow_shift",
+    "sigmoid_scale",
+    "weighting_scheme",
+    "logit_mean",
+    "logit_std",
+    "mode_scale",
+    "min_timestep",
+    "max_timestep",
+    "show_timesteps",
+    "no_metadata",
+    "network_weights",
+    "network_module",
+    "network_dim",
+    "network_alpha",
+    "network_dropout",
+    "network_args",
+    "training_comment",
+    "dim_from_weights",
+    "scale_weight_norms",
+    "base_weights",
+    "base_weights_multiplier",
+    "output_dir",
+    "output_name",
+    "resume",
+    "save_every_n_epochs",
+    "save_every_n_steps",
+    "save_last_n_epochs",
+    "save_last_n_epochs_state",
+    "save_last_n_steps",
+    "save_last_n_steps_state",
+    "save_state",
+    "save_state_on_train_end",
+    "huggingface_repo_id",
+    "huggingface_token",
+    "huggingface_repo_type",
+    "huggingface_repo_visibility",
+    "huggingface_path_in_repo",
+    "save_state_to_huggingface",
+    "resume_from_huggingface",
+    "async_upload",
+    "metadata_author",
+    "metadata_description",
+    "metadata_license",
+    "metadata_tags",
+    "metadata_title",
+    "architecture",
+    "task",
+    "dit_high_noise",
+    "timestep_boundary",
+    "t5",
+    "clip",
+    "fp8_scaled",
+    "fp8_t5",
+    "vae_cache_cpu",
+    "text_encoder",
+    "fp8_vl",
+    "model_version",
+    "num_layers",
+    "remove_first_image_from_target",
+    "fp8_text_encoder",
+    "hv15_task",
+    "byt5",
+    "image_encoder",
+    "vae_enable_patch_conv",
+    "vae_sample_size",
+    "latent_window_size",
+    "f1",
+    "bulk_decode",
+    "one_frame",
+    "kandinsky5_task",
+    "text_encoder_clip",
+    "text_encoder_qwen",
+    "hidream_task",
+    "hidream_model_type",
+    "fp8_te",
+    "dino_loss_weight",
+    "unconditional_dit",
+    "sampler_preset",
+    "initial_sigma",
+    "use_unconditional_dit_for_lora_sampling",
+    "validate_caption_structure",
+    "warn_on_caption_issues",
+    "turbo_dit",
+    "turbo_dit_cache",
+    # shared new features (Move 11): supported by every registered architecture
+    "save_precision",
+    "use_pinned_memory_for_block_swap",
+    "block_swap_h2d_only",
+    "block_swap_ring_size",
+    "compile",
+    "compile_backend",
+    "compile_mode",
+]
+
+
 def gui_actions(
     # action type
     action_type,
@@ -50,147 +239,11 @@ def gui_actions(
     file_path,
     headless,
     print_only,
-    # accelerate_launch
-    mixed_precision,
-    num_cpu_threads_per_process,
-    num_processes,
-    num_machines,
-    multi_gpu,
-    gpu_ids,
-    main_process_port,
-    dynamo_backend,
-    dynamo_mode,
-    dynamo_use_fullgraph,
-    dynamo_use_dynamic,
-    extra_accelerate_launch_args,
-    # advanced_training
-    additional_parameters,
-    dataset_config,
-    sdpa,
-    flash_attn,
-    sage_attn,
-    xformers,
-    split_attn,
-    max_train_steps,
-    max_train_epochs,
-    max_data_loader_n_workers,
-    persistent_data_loader_workers,
-    seed,
-    gradient_checkpointing,
-    gradient_accumulation_steps,
-    logging_dir,
-    log_with,
-    log_prefix,
-    log_tracker_name,
-    wandb_run_name,
-    log_tracker_config,
-    wandb_api_key,
-    log_config,
-    ddp_timeout,
-    ddp_gradient_as_bucket_view,
-    ddp_static_graph,
-    sample_every_n_steps,
-    sample_at_first,
-    sample_every_n_epochs,
-    sample_prompts,
-    # Latent Caching
-    caching_latent_device,
-    caching_latent_batch_size,
-    caching_latent_num_workers,
-    caching_latent_skip_existing,
-    caching_latent_keep_cache,
-    caching_latent_debug_mode,
-    caching_latent_console_width,
-    caching_latent_console_back,
-    caching_latent_console_num_images,
-    
-    # Text Encoder Outputs Caching
-    caching_teo_text_encoder1,
-    caching_teo_text_encoder2,
-    caching_teo_text_encoder_dtype,
-    caching_teo_device,
-    caching_teo_fp8_llm,
-    caching_teo_batch_size,
-    caching_teo_num_workers,
-    caching_teo_skip_existing,
-    caching_teo_keep_cache,
-    optimizer_type,
-    optimizer_args,
-    learning_rate,
-    max_grad_norm,
-    lr_scheduler,
-    lr_warmup_steps,
-    lr_decay_steps,
-    lr_scheduler_num_cycles,
-    lr_scheduler_power,
-    lr_scheduler_timescale,
-    lr_scheduler_min_lr_ratio,
-    lr_scheduler_type,
-    lr_scheduler_args,
-    dit,
-    dit_dtype,
-    vae,
-    vae_dtype,
-    vae_tiling,
-    vae_chunk_size,
-    vae_spatial_tile_sample_min_size,
-    text_encoder1,
-    text_encoder2,
-    fp8_llm,
-    fp8_base,
-    blocks_to_swap,
-    img_in_txt_in_offloading,
-    guidance_scale,
-    timestep_sampling,
-    discrete_flow_shift,
-    sigmoid_scale,
-    weighting_scheme,
-    logit_mean,
-    logit_std,
-    mode_scale,
-    min_timestep,
-    max_timestep,
-    show_timesteps,
-    no_metadata,
-    network_weights,
-    network_module,
-    network_dim,
-    network_alpha,
-    network_dropout,
-    network_args,
-    training_comment,
-    dim_from_weights,
-    scale_weight_norms,
-    base_weights,
-    base_weights_multiplier,
-    output_dir,
-    output_name,
-    resume,
-    save_every_n_epochs,
-    save_every_n_steps,
-    save_last_n_epochs,
-    save_last_n_epochs_state,
-    save_last_n_steps,
-    save_last_n_steps_state,
-    save_state,
-    save_state_on_train_end,
-    huggingface_repo_id,
-    huggingface_token,
-    huggingface_repo_type,
-    huggingface_repo_visibility,
-    huggingface_path_in_repo,
-    save_state_to_huggingface,
-    resume_from_huggingface,
-    async_upload,
-    metadata_author,
-    metadata_description,
-    metadata_license,
-    metadata_tags,
-    metadata_title,
+    # every architecture/training/caching field, in FIELD_NAMES order
+    *field_values,
 ):
-    # Get list of function parameters and values
-    parameters = [(k, v) for k, v in locals().items() if k not in ["action_type", "bool_value", "headless", "print_only"]]
-    
+    parameters = list(zip(FIELD_NAMES, field_values))
+
     if action_type == "save_configuration":
         log.info("Save configuration...")
         return save_configuration(
@@ -198,7 +251,7 @@ def gui_actions(
             file_path=file_path,
             parameters=parameters,
         )
-        
+
     if action_type == "open_configuration":
         log.info("Open configuration...")
         return open_configuration(
@@ -206,7 +259,7 @@ def gui_actions(
             file_path=file_path,
             parameters=parameters,
         )
-        
+
     if action_type == "train_model":
         log.info("Train model...")
         return train_model(
@@ -215,6 +268,7 @@ def gui_actions(
             parameters=parameters,
         )
 
+
 def save_configuration(
     # control
     save_as_bool,
@@ -222,9 +276,6 @@ def save_configuration(
     parameters,
 ):
     # Get list of function parameters and values
-    # parameters = list(locals().items())
-
-    # print(parameters)
 
     original_file_path = file_path
 
@@ -284,6 +335,7 @@ def save_configuration(
     # Return the file path of the saved configuration
     return file_path
 
+
 def open_configuration(
     # control
     ask_for_file,
@@ -291,7 +343,6 @@ def open_configuration(
     parameters,
 ):
     # Get list of function parameters and their values
-    # parameters = list(locals().items())
 
     # Store the original file path for potential reuse
     original_file_path = file_path
@@ -328,6 +379,7 @@ def open_configuration(
 
     return tuple(values)
 
+
 def train_model(
     # control
     headless,
@@ -335,125 +387,277 @@ def train_model(
     parameters,
 ):
     # Get list of function parameters and their values
-    # parameters = list(locals().items())
-    
+
     run_cmd = [rf"uv", "run", "accelerate", "launch"]
 
     param_dict = dict(parameters)
-    
-    run_cache_latent_cmd = ["uv", "run", "./musubi-tuner/cache_latents.py",
-                            "--dataset_config", str(param_dict.get("dataset_config")),
-                            "--vae", str(param_dict.get("vae"))
+
+    arch = get_architecture(param_dict.get("architecture"))
+
+    run_cache_latent_cmd = [
+        "uv",
+        "run",
+        f"./musubi-tuner/{arch.cache_latents_script}",
+        "--dataset_config",
+        str(param_dict.get("dataset_config")),
+        "--vae",
+        str(param_dict.get("vae")),
     ]
-    
+
     if param_dict.get("vae_dtype"):
         run_cache_latent_cmd.append("--vae_dtype")
-        run_cache_latent_cmd.append(str(param_dict.get("vae_dtype")))   
-        
+        run_cache_latent_cmd.append(str(param_dict.get("vae_dtype")))
+
     if param_dict.get("vae_chunk_size"):
         run_cache_latent_cmd.append("--vae_chunk_size")
         run_cache_latent_cmd.append(str(param_dict.get("vae_chunk_size")))
-                            
+
     if param_dict.get("vae_tiling"):
         run_cache_latent_cmd.append("--vae_tiling")
-        
+
     if param_dict.get("vae_spatial_tile_sample_min_size"):
         run_cache_latent_cmd.append("--vae_spatial_tile_sample_min_size")
-        run_cache_latent_cmd.append(str(param_dict.get("vae_spatial_tile_sample_min_size")))
-        
+        run_cache_latent_cmd.append(
+            str(param_dict.get("vae_spatial_tile_sample_min_size"))
+        )
+
     if param_dict.get("caching_latent_device"):
         run_cache_latent_cmd.append("--device")
         run_cache_latent_cmd.append(str(param_dict.get("caching_latent_device")))
-    
+
     if param_dict.get("caching_latent_batch_size"):
         run_cache_latent_cmd.append("--batch_size")
         run_cache_latent_cmd.append(str(param_dict.get("caching_latent_batch_size")))
-    
+
     if param_dict.get("caching_latent_num_workers"):
         run_cache_latent_cmd.append("--num_workers")
         run_cache_latent_cmd.append(str(param_dict.get("caching_latent_num_workers")))
-        
+
     if param_dict.get("caching_latent_skip_existing"):
         run_cache_latent_cmd.append("--skip_existing")
-        
+
     if param_dict.get("caching_latent_keep_cache"):
         run_cache_latent_cmd.append("--keep_cache")
-        
+
     if param_dict.get("caching_latent_debug_mode"):
         run_cache_latent_cmd.append("--debug_mode")
         run_cache_latent_cmd.append(str(param_dict.get("caching_latent_debug_mode")))
-        
+
     if param_dict.get("caching_latent_console_width"):
         run_cache_latent_cmd.append("--console_width")
         run_cache_latent_cmd.append(str(param_dict.get("caching_latent_console_width")))
-        
+
     if param_dict.get("caching_latent_console_back"):
         run_cache_latent_cmd.append("--console_back")
         run_cache_latent_cmd.append(str(param_dict.get("caching_latent_console_back")))
-        
+
     if param_dict.get("caching_latent_console_num_images"):
         run_cache_latent_cmd.append("--console_num_images")
-        run_cache_latent_cmd.append(str(param_dict.get("caching_latent_console_num_images")))
-    
+        run_cache_latent_cmd.append(
+            str(param_dict.get("caching_latent_console_num_images"))
+        )
+
+    if arch.key == "wan":
+        if param_dict.get("clip"):
+            run_cache_latent_cmd.append("--clip")
+            run_cache_latent_cmd.append(str(param_dict.get("clip")))
+        if "i2v" in str(param_dict.get("task", "")):
+            run_cache_latent_cmd.append("--i2v")
+
+    if arch.key in ("qwen_image", "flux_2") and param_dict.get("model_version"):
+        run_cache_latent_cmd.append("--model_version")
+        run_cache_latent_cmd.append(str(param_dict.get("model_version")))
+
+    if arch.key == "hv_1_5":
+        if param_dict.get("image_encoder"):
+            run_cache_latent_cmd.append("--image_encoder")
+            run_cache_latent_cmd.append(str(param_dict.get("image_encoder")))
+        if param_dict.get("hv15_task") == "i2v":
+            run_cache_latent_cmd.append("--i2v")
+        if param_dict.get("vae_enable_patch_conv"):
+            run_cache_latent_cmd.append("--vae_enable_patch_conv")
+        if param_dict.get("vae_sample_size"):
+            run_cache_latent_cmd.append("--vae_sample_size")
+            run_cache_latent_cmd.append(str(param_dict.get("vae_sample_size")))
+
+    if arch.key == "framepack":
+        if param_dict.get("image_encoder"):
+            run_cache_latent_cmd.append("--image_encoder")
+            run_cache_latent_cmd.append(str(param_dict.get("image_encoder")))
+        if param_dict.get("f1"):
+            run_cache_latent_cmd.append("--f1")
+        if param_dict.get("one_frame"):
+            run_cache_latent_cmd.append("--one_frame")
+
     # Reconstruct the safe command string for display
-    # command_to_run = " ".join(run_cache_latent_cmd)
     log.info(f"Executing command: {run_cache_latent_cmd}")
 
     # Execute the command securely
     log.info("Caching latents...")
     subprocess.run(run_cache_latent_cmd, env=setup_environment())
-    #subprocess.Popen(run_cache_latent_cmd, setup_environment())
     log.debug("Command executed.")
-    
+
     ######
-    
-    run_cache_teo_cmd = ["uv", "run", "./musubi-tuner/cache_text_encoder_outputs.py",
-                            "--dataset_config", str(param_dict.get("dataset_config"))
+
+    run_cache_teo_cmd = [
+        "uv",
+        "run",
+        f"./musubi-tuner/{arch.cache_teo_script}",
+        "--dataset_config",
+        str(param_dict.get("dataset_config")),
     ]
-    
-    if param_dict.get("caching_teo_text_encoder1"):
-        run_cache_teo_cmd.append("--text_encoder1")
-        run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder1")))   
-        
-    if param_dict.get("caching_teo_text_encoder2"):
-        run_cache_teo_cmd.append("--text_encoder2")
-        run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder2")))
-                            
-    if param_dict.get("caching_teo_fp8_llm"):
-        run_cache_teo_cmd.append("--fp8_llm")
-        
+
+    if arch.key == "wan":
+        if param_dict.get("t5"):
+            run_cache_teo_cmd.append("--t5")
+            run_cache_teo_cmd.append(str(param_dict.get("t5")))
+
+        if param_dict.get("fp8_t5"):
+            run_cache_teo_cmd.append("--fp8_t5")
+    elif arch.key == "qwen_image":
+        if param_dict.get("text_encoder"):
+            run_cache_teo_cmd.append("--text_encoder")
+            run_cache_teo_cmd.append(str(param_dict.get("text_encoder")))
+
+        if param_dict.get("fp8_vl"):
+            run_cache_teo_cmd.append("--fp8_vl")
+
+        if param_dict.get("model_version"):
+            run_cache_teo_cmd.append("--model_version")
+            run_cache_teo_cmd.append(str(param_dict.get("model_version")))
+    elif arch.key == "zimage":
+        if param_dict.get("text_encoder"):
+            run_cache_teo_cmd.append("--text_encoder")
+            run_cache_teo_cmd.append(str(param_dict.get("text_encoder")))
+
+        if param_dict.get("fp8_llm"):
+            run_cache_teo_cmd.append("--fp8_llm")
+    elif arch.key == "flux_2":
+        if param_dict.get("text_encoder"):
+            run_cache_teo_cmd.append("--text_encoder")
+            run_cache_teo_cmd.append(str(param_dict.get("text_encoder")))
+
+        if param_dict.get("fp8_text_encoder"):
+            run_cache_teo_cmd.append("--fp8_text_encoder")
+
+        if param_dict.get("model_version"):
+            run_cache_teo_cmd.append("--model_version")
+            run_cache_teo_cmd.append(str(param_dict.get("model_version")))
+    elif arch.key == "flux_kontext":
+        if param_dict.get("caching_teo_text_encoder1"):
+            run_cache_teo_cmd.append("--text_encoder1")
+            run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder1")))
+
+        if param_dict.get("caching_teo_text_encoder2"):
+            run_cache_teo_cmd.append("--text_encoder2")
+            run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder2")))
+
+        if param_dict.get("fp8_t5"):
+            run_cache_teo_cmd.append("--fp8_t5")
+    elif arch.key == "hv_1_5":
+        if param_dict.get("text_encoder"):
+            run_cache_teo_cmd.append("--text_encoder")
+            run_cache_teo_cmd.append(str(param_dict.get("text_encoder")))
+
+        if param_dict.get("byt5"):
+            run_cache_teo_cmd.append("--byt5")
+            run_cache_teo_cmd.append(str(param_dict.get("byt5")))
+
+        if param_dict.get("fp8_vl"):
+            run_cache_teo_cmd.append("--fp8_vl")
+    elif arch.key == "kandinsky5":
+        if param_dict.get("text_encoder_clip"):
+            run_cache_teo_cmd.append("--text_encoder_clip")
+            run_cache_teo_cmd.append(str(param_dict.get("text_encoder_clip")))
+
+        if param_dict.get("text_encoder_qwen"):
+            run_cache_teo_cmd.append("--text_encoder_qwen")
+            run_cache_teo_cmd.append(str(param_dict.get("text_encoder_qwen")))
+    elif arch.key == "hidream_o1":
+        if param_dict.get("dit"):
+            run_cache_teo_cmd.append("--dit")
+            run_cache_teo_cmd.append(str(param_dict.get("dit")))
+
+        if param_dict.get("fp8_te"):
+            run_cache_teo_cmd.append("--fp8_te")
+
+        if param_dict.get("hidream_model_type"):
+            run_cache_teo_cmd.append("--model_type")
+            run_cache_teo_cmd.append(str(param_dict.get("hidream_model_type")))
+    elif arch.key == "ideogram4":
+        if param_dict.get("text_encoder"):
+            run_cache_teo_cmd.append("--text_encoder")
+            run_cache_teo_cmd.append(str(param_dict.get("text_encoder")))
+
+        if param_dict.get("validate_caption_structure"):
+            run_cache_teo_cmd.append("--validate_caption_structure")
+
+        if param_dict.get("warn_on_caption_issues"):
+            run_cache_teo_cmd.append("--warn_on_caption_issues")
+    elif arch.key == "krea2":
+        if param_dict.get("text_encoder"):
+            run_cache_teo_cmd.append("--text_encoder")
+            run_cache_teo_cmd.append(str(param_dict.get("text_encoder")))
+
+        if param_dict.get("caching_teo_text_encoder_dtype"):
+            run_cache_teo_cmd.append("--text_encoder_dtype")
+            run_cache_teo_cmd.append(
+                str(param_dict.get("caching_teo_text_encoder_dtype"))
+            )
+    else:
+        if param_dict.get("caching_teo_text_encoder1"):
+            run_cache_teo_cmd.append("--text_encoder1")
+            run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder1")))
+
+        if param_dict.get("caching_teo_text_encoder2"):
+            run_cache_teo_cmd.append("--text_encoder2")
+            run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder2")))
+
+        if param_dict.get("caching_teo_fp8_llm"):
+            run_cache_teo_cmd.append("--fp8_llm")
+
     if param_dict.get("caching_teo_device"):
         run_cache_teo_cmd.append("--device")
         run_cache_teo_cmd.append(str(param_dict.get("caching_teo_device")))
-    
-    if param_dict.get("caching_teo_text_encoder_dtype"):
+
+    if arch.key not in (
+        "wan",
+        "qwen_image",
+        "zimage",
+        "flux_2",
+        "flux_kontext",
+        "hv_1_5",
+        "framepack",
+        "kandinsky5",
+        "hidream_o1",
+        "ideogram4",
+        "krea2",
+    ) and param_dict.get("caching_teo_text_encoder_dtype"):
         run_cache_teo_cmd.append("--text_encoder_dtype")
         run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder_dtype")))
-    
+
     if param_dict.get("caching_teo_batch_size"):
         run_cache_teo_cmd.append("--batch_size")
         run_cache_teo_cmd.append(str(param_dict.get("caching_teo_batch_size")))
-        
+
     if param_dict.get("caching_teo_skip_existing"):
         run_cache_teo_cmd.append("--skip_existing")
-        
+
     if param_dict.get("caching_teo__keep_cache"):
         run_cache_teo_cmd.append("--keep_cache")
-        
+
     if param_dict.get("caching_teo_num_workers"):
         run_cache_teo_cmd.append("--num_workers")
         run_cache_teo_cmd.append(str(param_dict.get("caching_teo_num_workers")))
-    
+
     # Reconstruct the safe command string for display
-    # command_to_run = " ".join(run_cache_teo_cmd)
     log.info(f"Executing command: {run_cache_teo_cmd}")
 
     # Execute the command securely
     log.info("Caching text encoder outputs...")
     subprocess.run(run_cache_teo_cmd, env=setup_environment())
-    #subprocess.Popen(run_cache_teo_cmd, setup_environment())
     log.debug("Command executed.")
-    
+
     #######
 
     run_cmd = AccelerateLaunch.run_cmd(
@@ -472,7 +676,7 @@ def train_model(
         extra_accelerate_launch_args=param_dict.get("extra_accelerate_launch_args"),
     )
 
-    run_cmd.append(rf"{scriptdir}/musubi-tuner/hv_train_network.py")
+    run_cmd.append(rf"{scriptdir}/musubi-tuner/{arch.train_script}")
 
     if print_only:
         print_command_and_toml(run_cmd, "")
@@ -480,18 +684,50 @@ def train_model(
         # Saving config file for model
         current_datetime = datetime.now()
         formatted_datetime = current_datetime.strftime("%Y%m%d-%H%M%S")
-        # config_dir = os.path.dirname(os.path.dirname(train_data_dir))
-        file_path = os.path.join(param_dict.get('output_dir'), f"{param_dict.get('output_name')}_{formatted_datetime}.toml")
+        file_path = os.path.join(
+            param_dict.get("output_dir"),
+            f"{param_dict.get('output_name')}_{formatted_datetime}.toml",
+        )
 
         log.info(f"Saving training config to {file_path}...")
 
         pattern_exclusion = []
         for key, _ in parameters:
-            if key.startswith('caching_latent_') or key.startswith('caching_teo_'):
+            if key.startswith("caching_latent_") or key.startswith("caching_teo_"):
                 pattern_exclusion.append(key)
 
+        # Wan, HunyuanVideo 1.5, Kandinsky 5, and HiDream-O1 each have their own
+        # "--task" widget (different choices/shape), so the GUI keeps them as
+        # distinct fields ("task"/"hv15_task"/"kandinsky5_task"/"hidream_task")
+        # but the trainer's TOML key must always be literally "task".
+        # HiDream-O1's "--model_type" gets the same treatment since
+        # "hidream_model_type" is its own distinctly-named field.
+        training_parameters = [
+            (key, value)
+            for key, value in parameters
+            if key
+            not in (
+                "task",
+                "hv15_task",
+                "kandinsky5_task",
+                "hidream_task",
+                "hidream_model_type",
+            )
+        ]
+        if arch.key == "wan":
+            training_parameters.append(("task", param_dict.get("task")))
+        elif arch.key == "hv_1_5":
+            training_parameters.append(("task", param_dict.get("hv15_task")))
+        elif arch.key == "kandinsky5":
+            training_parameters.append(("task", param_dict.get("kandinsky5_task")))
+        elif arch.key == "hidream_o1":
+            training_parameters.append(("task", param_dict.get("hidream_task")))
+            training_parameters.append(
+                ("model_type", param_dict.get("hidream_model_type"))
+            )
+
         SaveConfigFileToRun(
-            parameters=parameters,
+            parameters=training_parameters,
             file_path=file_path,
             exclusion=[
                 "file_path",
@@ -509,9 +745,11 @@ def train_model(
                 "dynamo_use_fullgraph",
                 "dynamo_use_dynamic",
                 "extra_accelerate_launch_args",
-            ] + pattern_exclusion,
+                "architecture",
+            ]
+            + pattern_exclusion,
         )
-        
+
         run_cmd.append("--config_file")
         run_cmd.append(rf"{file_path}")
 
@@ -538,6 +776,38 @@ def train_model(
             gr.Textbox(value=train_state_value),
         )
 
+
+def apply_architecture(architecture_key):
+    """Show/hide the Model Settings field groups for the selected architecture.
+
+    Shared between the architecture dropdown's change event and config loading
+    so both paths always agree on which fields are visible.
+    """
+    spec = get_architecture(architecture_key)
+    return (
+        gr.Column(visible="dit_vae" in spec.model_field_groups),
+        gr.Column(visible="dit_dtype" in spec.model_field_groups),
+        gr.Column(visible="hv_extras" in spec.model_field_groups),
+        gr.Column(visible="dual_text_encoder" in spec.model_field_groups),
+        gr.Column(visible="fp8_common" in spec.model_field_groups),
+        gr.Column(visible="wan_extras" in spec.model_field_groups),
+        gr.Column(visible="single_text_encoder" in spec.model_field_groups),
+        gr.Column(visible="model_version" in spec.model_field_groups),
+        gr.Column(visible="fp8_vl" in spec.model_field_groups),
+        gr.Column(visible="qwen_image_extras" in spec.model_field_groups),
+        gr.Column(visible="flux_2_extras" in spec.model_field_groups),
+        gr.Column(visible="image_encoder" in spec.model_field_groups),
+        gr.Column(visible="hv_1_5_extras" in spec.model_field_groups),
+        gr.Column(visible="framepack_extras" in spec.model_field_groups),
+        gr.Column(visible="kandinsky5_extras" in spec.model_field_groups),
+        gr.Column(visible="hidream_o1_extras" in spec.model_field_groups),
+        gr.Column(visible="ideogram4_extras" in spec.model_field_groups),
+        gr.Column(visible="krea2_extras" in spec.model_field_groups),
+        gr.Column(visible="perf" in spec.model_field_groups),
+        gr.Column(visible="flow_matching" in spec.model_field_groups),
+    )
+
+
 def lora_tab(
     headless=False,
     config: GUIConfig = {},
@@ -545,48 +815,124 @@ def lora_tab(
     dummy_true = gr.Checkbox(value=True, visible=False)
     dummy_false = gr.Checkbox(value=False, visible=False)
     dummy_headless = gr.Checkbox(value=headless, visible=False)
-    
+
+    gr.Markdown(
+        "Configure and launch a musubi-tuner training run. Sections follow the "
+        "workflow top to bottom:\n\n"
+        "1. **Model** — pick the architecture and its checkpoints.\n"
+        "2. **Caching** — precompute latents and text encoder outputs.\n"
+        "3. **Network**, **Optimizer**, and **Training** — the training recipe.\n"
+        "4. **Save / Load**, **Metadata**, and **HuggingFace** — what gets written out.\n\n"
+        "When ready, use the bar below to print the command or start training."
+    )
+
+    run_state = gr.Textbox(value=train_state_value, visible=False)
+
+    with gr.Row(elem_id="training_actions_bar"):
+        button_print = gr.Button("🖨️ Print training command", scale=1)
+        global executor
+        executor = CommandExecutor(headless=headless)
 
     # Setup Configuration Files Gradio
-    with gr.Accordion("Configuration file Settings", open=False):
+    with gr.Accordion(
+        "⚙️ Configuration File Settings", open=False, elem_classes="advanced_background"
+    ):
         configuration = ConfigurationFile(headless=headless, config=config)
 
-    with gr.Accordion("Accelerate launch Settings", open=False, elem_classes="flux1_background"), gr.Column():
+    with (
+        gr.Accordion(
+            "🚀 Accelerate Launch Settings",
+            open=False,
+            elem_classes="advanced_background",
+        ),
+        gr.Column(),
+    ):
         accelerate_launch = AccelerateLaunch(config=config)
-        
-    with gr.Accordion("Model Settings", open=True, elem_classes="preset_background"):
+
+    with gr.Accordion("🧠 Model Settings", open=True, elem_classes="preset_background"):
         model = Model(headless=headless, config=config)
-        
-    with gr.Accordion("Caching", open=True, elem_classes="samples_background"):
-        with gr.Tab("Latent caching"):
+        architecture_groups = [
+            model.group_dit_vae,
+            model.group_dit_dtype,
+            model.group_hv_extras,
+            model.group_dual_text_encoder,
+            model.group_fp8_common,
+            model.group_wan_extras,
+            model.group_single_text_encoder,
+            model.group_model_version,
+            model.group_fp8_vl,
+            model.group_qwen_image_extras,
+            model.group_flux_2_extras,
+            model.group_image_encoder,
+            model.group_hv_1_5_extras,
+            model.group_framepack_extras,
+            model.group_kandinsky5_extras,
+            model.group_hidream_o1_extras,
+            model.group_ideogram4_extras,
+            model.group_krea2_extras,
+            model.group_perf,
+            model.group_flow_matching,
+        ]
+        model.architecture.change(
+            fn=apply_architecture,
+            inputs=[model.architecture],
+            outputs=architecture_groups,
+        )
+
+    with gr.Accordion("💾 Caching", open=True, elem_classes="samples_background"):
+        with gr.Tab("🖼️ Latent caching"):
             latentCaching = LatentCaching(headless=headless, config=config)
-                
-        with gr.Tab("Text encoder caching"):
+
+        with gr.Tab("📝 Text encoder caching"):
             teoCaching = TextEncoderOutputsCaching(headless=headless, config=config)
-        
-    with gr.Accordion("Save Load Settings", open=True, elem_classes="samples_background"):
-        saveLoadSettings = SaveLoadSettings(headless=headless, config=config)
-        
-    with gr.Accordion("Optimizer and Scheduler Settings", open=True, elem_classes="flux1_rank_layers_background"):
-        OptimizerAndSchedulerSettings = OptimizerAndScheduler(headless=headless, config=config)
-        
-    with gr.Accordion("Network Settings", open=True, elem_classes="flux1_background"):
+
+    with gr.Accordion(
+        "🕸️ Network Settings", open=True, elem_classes="flux1_rank_layers_background"
+    ):
         network = Network(headless=headless, config=config)
-        
-    with gr.Accordion("Training Settings", open=True, elem_classes="preset_background"):
+
+    with gr.Accordion(
+        "📉 Optimizer and Scheduler Settings",
+        open=True,
+        elem_classes="flux1_rank_layers_background",
+    ):
+        OptimizerAndSchedulerSettings = OptimizerAndScheduler(
+            headless=headless, config=config
+        )
+
+    with gr.Accordion(
+        "🏋️ Training Settings", open=True, elem_classes="flux1_rank_layers_background"
+    ):
         trainingSettings = TrainingSettings(headless=headless, config=config)
 
-    with gr.Accordion("Advanced Settings", open=True, elem_classes="samples_background"):
+    with gr.Accordion(
+        "🧪 Advanced Settings", open=True, elem_classes="basic_background"
+    ):
         advanced_training = AdvancedTraining(
             headless=headless, training_type="lora", config=config
         )
 
-    with gr.Accordion("Metadata Settings", open=False, elem_classes="flux1_rank_layers_background"), gr.Group():
+    with gr.Accordion(
+        "📦 Save / Load Settings", open=True, elem_classes="output_background"
+    ):
+        saveLoadSettings = SaveLoadSettings(headless=headless, config=config)
+
+    with (
+        gr.Accordion(
+            "🏷️ Metadata Settings", open=False, elem_classes="output_background"
+        ),
+        gr.Group(),
+    ):
         metadata = MetaData(config=config)
 
     global huggingface
-    with gr.Accordion("HuggingFace Settings", open=False, elem_classes="huggingface_background"):
+    with gr.Accordion(
+        "☁️ HuggingFace Settings", open=False, elem_classes="huggingface_background"
+    ):
         huggingface = HuggingFace(config=config)
+
+    # Setup gradio tensorboard buttons
+    TensorboardManager(headless=headless, logging_dir=trainingSettings.logging_dir)
 
     settings_list = [
         # accelerate_launch
@@ -602,13 +948,10 @@ def lora_tab(
         accelerate_launch.dynamo_use_fullgraph,
         accelerate_launch.dynamo_use_dynamic,
         accelerate_launch.extra_accelerate_launch_args,
-        
         # advanced_training
         advanced_training.additional_parameters,
-        
         # Dataset Settings
         model.dataset_config,
-        
         # trainingSettings
         trainingSettings.sdpa,
         trainingSettings.flash_attn,
@@ -637,7 +980,6 @@ def lora_tab(
         trainingSettings.sample_at_first,
         trainingSettings.sample_every_n_epochs,
         trainingSettings.sample_prompts,
-        
         # Latent Caching
         latentCaching.caching_latent_device,
         latentCaching.caching_latent_batch_size,
@@ -648,7 +990,6 @@ def lora_tab(
         latentCaching.caching_latent_console_width,
         latentCaching.caching_latent_console_back,
         latentCaching.caching_latent_console_num_images,
-        
         # Text Encoder Outputs Caching
         teoCaching.caching_teo_text_encoder1,
         teoCaching.caching_teo_text_encoder2,
@@ -659,7 +1000,6 @@ def lora_tab(
         teoCaching.caching_teo_num_workers,
         teoCaching.caching_teo_skip_existing,
         teoCaching.caching_teo_keep_cache,
-        
         # OptimizerAndSchedulerSettings
         OptimizerAndSchedulerSettings.optimizer_type,
         OptimizerAndSchedulerSettings.optimizer_args,
@@ -674,7 +1014,6 @@ def lora_tab(
         OptimizerAndSchedulerSettings.lr_scheduler_min_lr_ratio,
         OptimizerAndSchedulerSettings.lr_scheduler_type,
         OptimizerAndSchedulerSettings.lr_scheduler_args,
-        
         # model
         model.dit,
         model.dit_dtype,
@@ -700,7 +1039,6 @@ def lora_tab(
         model.min_timestep,
         model.max_timestep,
         model.show_timesteps,
-        
         # network
         network.no_metadata,
         network.network_weights,
@@ -714,7 +1052,6 @@ def lora_tab(
         network.scale_weight_norms,
         network.base_weights,
         network.base_weights_multiplier,
-        
         # saveLoadSettings
         saveLoadSettings.output_dir,
         saveLoadSettings.output_name,
@@ -727,7 +1064,6 @@ def lora_tab(
         saveLoadSettings.save_last_n_steps_state,
         saveLoadSettings.save_state,
         saveLoadSettings.save_state_on_train_end,
-        
         # huggingface
         huggingface.huggingface_repo_id,
         huggingface.huggingface_token,
@@ -737,41 +1073,117 @@ def lora_tab(
         huggingface.save_state_to_huggingface,
         huggingface.resume_from_huggingface,
         huggingface.async_upload,
-        
         # metadata
         metadata.metadata_author,
         metadata.metadata_description,
         metadata.metadata_license,
         metadata.metadata_tags,
         metadata.metadata_title,
+        # architecture
+        model.architecture,
+        # wan
+        model.task,
+        model.dit_high_noise,
+        model.timestep_boundary,
+        model.t5,
+        model.clip,
+        model.fp8_scaled,
+        model.fp8_t5,
+        model.vae_cache_cpu,
+        # qwen_image
+        model.text_encoder,
+        model.fp8_vl,
+        model.model_version,
+        model.num_layers,
+        model.remove_first_image_from_target,
+        # flux_2
+        model.fp8_text_encoder,
+        # hv_1_5
+        model.hv15_task,
+        model.byt5,
+        model.image_encoder,
+        model.vae_enable_patch_conv,
+        model.vae_sample_size,
+        # framepack
+        model.latent_window_size,
+        model.f1,
+        model.bulk_decode,
+        model.one_frame,
+        # kandinsky5
+        model.kandinsky5_task,
+        model.text_encoder_clip,
+        model.text_encoder_qwen,
+        # hidream_o1
+        model.hidream_task,
+        model.hidream_model_type,
+        model.fp8_te,
+        model.dino_loss_weight,
+        # ideogram4
+        model.unconditional_dit,
+        model.sampler_preset,
+        model.initial_sigma,
+        model.use_unconditional_dit_for_lora_sampling,
+        model.validate_caption_structure,
+        model.warn_on_caption_issues,
+        # krea2
+        model.turbo_dit,
+        model.turbo_dit_cache,
+        # shared new features (Move 11)
+        saveLoadSettings.save_precision,
+        model.use_pinned_memory_for_block_swap,
+        model.block_swap_h2d_only,
+        model.block_swap_ring_size,
+        trainingSettings.compile,
+        trainingSettings.compile_backend,
+        trainingSettings.compile_mode,
     ]
-
-    run_state = gr.Textbox(value=train_state_value, visible=False)
-
-    with gr.Column(), gr.Group():
-        with gr.Row():
-            button_print = gr.Button("Print training command")
-
-    global executor
-    executor = CommandExecutor(headless=headless)
 
     configuration.button_open_config.click(
         gui_actions,
-        inputs=[gr.Textbox(value="open_configuration", visible=False), dummy_true, configuration.config_file_name, dummy_headless, dummy_false] + settings_list,
+        inputs=[
+            gr.Textbox(value="open_configuration", visible=False),
+            dummy_true,
+            configuration.config_file_name,
+            dummy_headless,
+            dummy_false,
+        ]
+        + settings_list,
         outputs=[configuration.config_file_name] + settings_list,
         show_progress=False,
+    ).then(
+        fn=apply_architecture,
+        inputs=[model.architecture],
+        outputs=architecture_groups,
     )
 
     configuration.button_load_config.click(
         gui_actions,
-        inputs=[gr.Textbox(value="open_configuration", visible=False), dummy_false, configuration.config_file_name, dummy_headless, dummy_false] + settings_list,
+        inputs=[
+            gr.Textbox(value="open_configuration", visible=False),
+            dummy_false,
+            configuration.config_file_name,
+            dummy_headless,
+            dummy_false,
+        ]
+        + settings_list,
         outputs=[configuration.config_file_name] + settings_list,
         show_progress=False,
+    ).then(
+        fn=apply_architecture,
+        inputs=[model.architecture],
+        outputs=architecture_groups,
     )
 
     configuration.button_save_config.click(
         gui_actions,
-        inputs=[gr.Textbox(value="save_configuration", visible=False), dummy_false, configuration.config_file_name, dummy_headless, dummy_false] + settings_list,
+        inputs=[
+            gr.Textbox(value="save_configuration", visible=False),
+            dummy_false,
+            configuration.config_file_name,
+            dummy_headless,
+            dummy_false,
+        ]
+        + settings_list,
         outputs=[configuration.config_file_name],
         show_progress=False,
     )
@@ -783,13 +1195,27 @@ def lora_tab(
 
     button_print.click(
         gui_actions,
-        inputs=[gr.Textbox(value="train_model", visible=False), dummy_false, configuration.config_file_name, dummy_headless, dummy_true] + settings_list,
+        inputs=[
+            gr.Textbox(value="train_model", visible=False),
+            dummy_false,
+            configuration.config_file_name,
+            dummy_headless,
+            dummy_true,
+        ]
+        + settings_list,
         show_progress=False,
     )
 
     executor.button_run.click(
         gui_actions,
-        inputs=[gr.Textbox(value="train_model", visible=False), dummy_false, configuration.config_file_name, dummy_headless, dummy_false] + settings_list,
+        inputs=[
+            gr.Textbox(value="train_model", visible=False),
+            dummy_false,
+            configuration.config_file_name,
+            dummy_headless,
+            dummy_false,
+        ]
+        + settings_list,
         outputs=[executor.button_run, executor.button_stop_training, run_state],
         show_progress=False,
     )
@@ -799,4 +1225,4 @@ def lora_tab(
         outputs=[executor.button_run, executor.button_stop_training],
     )
 
-    
+    return model.dataset_config

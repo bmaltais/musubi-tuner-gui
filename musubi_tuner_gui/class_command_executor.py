@@ -20,12 +20,14 @@ class CommandExecutor:
         """
         self.headless = headless
         self.process = None
-        
+
         with gr.Row():
             self.button_run = gr.Button("Start training", variant="primary")
 
             self.button_stop_training = gr.Button(
-                "Stop training", visible=self.process is not None or headless, variant="stop"
+                "Stop training",
+                visible=self.process is not None or headless,
+                variant="stop",
             )
 
     def execute_command(self, run_cmd: str, **kwargs):

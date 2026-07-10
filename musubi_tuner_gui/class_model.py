@@ -2,6 +2,7 @@ import gradio as gr
 import toml
 from .class_gui_config import GUIConfig
 
+
 class Model:
     def __init__(
         self,
@@ -18,7 +19,7 @@ class Model:
         with gr.Row():
             self.dataset_config = gr.Textbox(
                 label="Dataset Config",
-                placeholder='Path to the dataset config file',
+                placeholder="Path to the dataset config file",
                 value=str(self.config.get("dataset_config", "")),
             )
 
@@ -104,7 +105,7 @@ class Model:
                 label="Use FP8 for Base Model",
                 value=self.config.get("fp8_base", False),
             )
-            
+
         with gr.Row():
             self.blocks_to_swap = gr.Number(
                 label="Blocks to Swap",

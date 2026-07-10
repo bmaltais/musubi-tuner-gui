@@ -49,7 +49,7 @@ class OptimizerAndScheduler:
                 interactive=True,
                 step=1e-6,
             )
-            
+
             self.optimizer_type = gr.Dropdown(
                 label="Optimizer Type",
                 info="Select the optimizer to use",
@@ -81,7 +81,7 @@ class OptimizerAndScheduler:
                 allow_custom_value=False,
                 value=self.config.get("lr_scheduler", "constant"),
                 interactive=True,
-            )   
+            )
 
             self.lr_warmup_steps = gr.Number(
                 label="LR Warmup Steps",

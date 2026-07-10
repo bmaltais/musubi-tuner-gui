@@ -11,3 +11,8 @@ dependencies = [
 
 [tool.uv.sources]
 musubi-tuner = { path = "musubi-tuner" }
+
+[dependency-groups]
+dev = [
+    "black>=26.5.1",
+]

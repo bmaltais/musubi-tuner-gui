@@ -2,6 +2,7 @@ import gradio as gr
 import toml
 from .class_gui_config import GUIConfig
 
+
 class TrainingSettings:
     def __init__(
         self,
@@ -51,25 +52,24 @@ class TrainingSettings:
                 info="Maximum number of training steps",
                 value=self.config.get("max_train_steps", 1600),
                 interactive=True,
-                
             )
 
             self.max_train_epochs = gr.Number(
                 label="Max Training Epochs",
-                info='Overrides max_train_steps',
+                info="Overrides max_train_steps",
                 value=self.config.get("max_train_epochs", None),
             )
 
             self.max_data_loader_n_workers = gr.Number(
                 label="Max DataLoader Workers",
-                info='Lower values reduce RAM usage and speed up epoch start',
+                info="Lower values reduce RAM usage and speed up epoch start",
                 value=self.config.get("max_data_loader_n_workers", 8),
                 interactive=True,
             )
 
             self.persistent_data_loader_workers = gr.Checkbox(
                 label="Persistent DataLoader Workers",
-                info='Keep DataLoader workers alive between epochs',
+                info="Keep DataLoader workers alive between epochs",
                 value=self.config.get("persistent_data_loader_workers", False),
             )
 

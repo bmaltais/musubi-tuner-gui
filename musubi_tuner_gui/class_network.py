@@ -2,6 +2,7 @@ import gradio as gr
 import toml
 from .class_gui_config import GUIConfig
 
+
 class Network:
     def __init__(
         self,

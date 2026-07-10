@@ -2,6 +2,7 @@ import gradio as gr
 import toml
 from .class_gui_config import GUIConfig
 
+
 class TextEncoderOutputsCaching:
     def __init__(
         self,
@@ -33,7 +34,7 @@ class TextEncoderOutputsCaching:
                 choices=["float16", "bfloat16"],
                 value=self.config.get("caching_teo_text_encoder_dtype", "float16"),
                 interactive=True,
-                info="Default is float16"
+                info="Default is float16",
             )
 
         with gr.Row():
@@ -47,21 +48,21 @@ class TextEncoderOutputsCaching:
                 label="Use FP8 for LLM",
                 value=self.config.get("caching_teo_fp8_llm", False),
                 interactive=True,
-                info="Enable FP8 for Text Encoder 1"
+                info="Enable FP8 for Text Encoder 1",
             )
             self.caching_teo_batch_size = gr.Number(
                 label="Batch Size",
                 value=self.config.get("caching_teo_batch_size", None),
                 step=1,
                 interactive=True,
-                info="Override dataset config if dataset batch size > this"
+                info="Override dataset config if dataset batch size > this",
             )
             self.caching_teo_num_workers = gr.Number(
                 label="Number of Workers",
                 value=self.config.get("caching_teo_num_workers", None),
                 step=1,
                 interactive=True,
-                info="Default is CPU count - 1"
+                info="Default is CPU count - 1",
             )
 
         with gr.Row():
@@ -69,11 +70,11 @@ class TextEncoderOutputsCaching:
                 label="Skip Existing",
                 value=self.config.get("caching_teo_skip_existing", False),
                 interactive=True,
-                info="Skip existing cache files"
+                info="Skip existing cache files",
             )
             self.caching_teo_keep_cache = gr.Checkbox(
                 label="Keep Cache",
                 value=self.config.get("caching_teo_keep_cache", False),
                 interactive=True,
-                info="Keep cache files not in dataset"
+                info="Keep cache files not in dataset",
             )

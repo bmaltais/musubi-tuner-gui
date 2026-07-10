@@ -38,7 +38,9 @@ ALL_GROUP_NAMES = {
     "fp8_vl",
     "qwen_image_extras",
     "flux_2_extras",
+    "image_encoder",
     "hv_1_5_extras",
+    "framepack_extras",
     "perf",
     "flow_matching",
 }
@@ -102,7 +104,9 @@ def test_apply_architecture_visibility_matches_model_field_groups(key, spec):
         "fp8_vl",
         "qwen_image_extras",
         "flux_2_extras",
+        "image_encoder",
         "hv_1_5_extras",
+        "framepack_extras",
         "perf",
         "flow_matching",
     ]

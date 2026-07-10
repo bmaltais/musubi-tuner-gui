@@ -200,6 +200,10 @@ FIELD_NAMES = [
     "image_encoder",
     "vae_enable_patch_conv",
     "vae_sample_size",
+    "latent_window_size",
+    "f1",
+    "bulk_decode",
+    "one_frame",
 ]
 
 
@@ -452,6 +456,15 @@ def train_model(
             run_cache_latent_cmd.append("--vae_sample_size")
             run_cache_latent_cmd.append(str(param_dict.get("vae_sample_size")))
 
+    if arch.key == "framepack":
+        if param_dict.get("image_encoder"):
+            run_cache_latent_cmd.append("--image_encoder")
+            run_cache_latent_cmd.append(str(param_dict.get("image_encoder")))
+        if param_dict.get("f1"):
+            run_cache_latent_cmd.append("--f1")
+        if param_dict.get("one_frame"):
+            run_cache_latent_cmd.append("--one_frame")
+
     # Reconstruct the safe command string for display
     log.info(f"Executing command: {run_cache_latent_cmd}")
 
@@ -551,6 +564,7 @@ def train_model(
         "flux_2",
         "flux_kontext",
         "hv_1_5",
+        "framepack",
     ) and param_dict.get("caching_teo_text_encoder_dtype"):
         run_cache_teo_cmd.append("--text_encoder_dtype")
         run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder_dtype")))
@@ -698,7 +712,9 @@ def apply_architecture(architecture_key):
         gr.Group(visible="fp8_vl" in spec.model_field_groups),
         gr.Group(visible="qwen_image_extras" in spec.model_field_groups),
         gr.Group(visible="flux_2_extras" in spec.model_field_groups),
+        gr.Group(visible="image_encoder" in spec.model_field_groups),
         gr.Group(visible="hv_1_5_extras" in spec.model_field_groups),
+        gr.Group(visible="framepack_extras" in spec.model_field_groups),
         gr.Group(visible="perf" in spec.model_field_groups),
         gr.Group(visible="flow_matching" in spec.model_field_groups),
     )
@@ -741,7 +757,9 @@ def lora_tab(
                 model.group_fp8_vl,
                 model.group_qwen_image_extras,
                 model.group_flux_2_extras,
+                model.group_image_encoder,
                 model.group_hv_1_5_extras,
+                model.group_framepack_extras,
                 model.group_perf,
                 model.group_flow_matching,
             ],
@@ -965,6 +983,11 @@ def lora_tab(
         model.image_encoder,
         model.vae_enable_patch_conv,
         model.vae_sample_size,
+        # framepack
+        model.latent_window_size,
+        model.f1,
+        model.bulk_decode,
+        model.one_frame,
     ]
 
     run_state = gr.Textbox(value=train_state_value, visible=False)

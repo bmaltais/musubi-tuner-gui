@@ -76,9 +76,17 @@ class Model:
         with self.group_flux_2_extras:
             self._initialize_flux_2_extras_fields()
 
+        self.group_image_encoder = gr.Group(visible=True)
+        with self.group_image_encoder:
+            self._initialize_image_encoder_fields()
+
         self.group_hv_1_5_extras = gr.Group(visible=True)
         with self.group_hv_1_5_extras:
             self._initialize_hv_1_5_extras_fields()
+
+        self.group_framepack_extras = gr.Group(visible=True)
+        with self.group_framepack_extras:
+            self._initialize_framepack_extras_fields()
 
         self.group_perf = gr.Group(visible=True)
         with self.group_perf:
@@ -302,8 +310,18 @@ class Model:
                 value=self.config.get("fp8_text_encoder", False),
             )
 
+    def _initialize_image_encoder_fields(self) -> None:
+        """Shared by architectures with an image encoder for i2v
+        (HunyuanVideo 1.5, FramePack)."""
+        with gr.Row():
+            self.image_encoder = gr.Textbox(
+                label="Image Encoder Path (i2v)",
+                placeholder="Path to the image encoder checkpoint, required for i2v",
+                value=self.config.get("image_encoder", ""),
+            )
+
     def _initialize_hv_1_5_extras_fields(self) -> None:
-        """HunyuanVideo 1.5-only model fields (t2v/i2v task, ByT5, image encoder)."""
+        """HunyuanVideo 1.5-only model fields (t2v/i2v task, ByT5, VAE patch conv)."""
         with gr.Row():
             self.hv15_task = gr.Dropdown(
                 label="Task",
@@ -319,12 +337,6 @@ class Model:
                 value=self.config.get("byt5", ""),
             )
 
-            self.image_encoder = gr.Textbox(
-                label="Image Encoder Path (i2v)",
-                placeholder="Path to the image encoder checkpoint, required for i2v",
-                value=self.config.get("image_encoder", ""),
-            )
-
         with gr.Row():
             self.vae_enable_patch_conv = gr.Checkbox(
                 label="Enable VAE Patch Conv",
@@ -336,6 +348,31 @@ class Model:
                 value=self.config.get("vae_sample_size", None),
                 step=1,
                 interactive=True,
+            )
+
+    def _initialize_framepack_extras_fields(self) -> None:
+        """FramePack-only model fields."""
+        with gr.Row():
+            self.latent_window_size = gr.Number(
+                label="Latent Window Size",
+                value=self.config.get("latent_window_size", None),
+                step=1,
+                interactive=True,
+            )
+
+            self.f1 = gr.Checkbox(
+                label="Use F1 Sampling",
+                value=self.config.get("f1", False),
+            )
+
+            self.bulk_decode = gr.Checkbox(
+                label="Bulk Decode",
+                value=self.config.get("bulk_decode", False),
+            )
+
+            self.one_frame = gr.Checkbox(
+                label="One Frame Training",
+                value=self.config.get("one_frame", False),
             )
 
     def _initialize_perf_fields(self) -> None:

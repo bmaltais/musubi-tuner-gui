@@ -92,6 +92,10 @@ class Model:
         with self.group_kandinsky5_extras:
             self._initialize_kandinsky5_extras_fields()
 
+        self.group_hidream_o1_extras = gr.Group(visible=True)
+        with self.group_hidream_o1_extras:
+            self._initialize_hidream_o1_extras_fields()
+
         self.group_perf = gr.Group(visible=True)
         with self.group_perf:
             self._initialize_perf_fields()
@@ -404,6 +408,43 @@ class Model:
                 label="Qwen Text Encoder Path",
                 placeholder="Path to the Qwen text encoder checkpoint",
                 value=self.config.get("text_encoder_qwen", ""),
+            )
+
+    def _initialize_hidream_o1_extras_fields(self) -> None:
+        """HiDream-O1-only model fields. Has no separate text-encoder
+        checkpoint path -- its text encoder is derived from --dit itself
+        during caching. Only dino_loss_weight (0 disables the optional
+        DINOv3 auxiliary loss) gets a dedicated widget; the remaining
+        DINOv3 tuning flags (layer, feature_mode, model_type, backend,
+        etc.) are left to Additional Parameters."""
+        with gr.Row():
+            self.hidream_task = gr.Dropdown(
+                label="Task",
+                info="Text-to-image (t2i) or image-to-image (i2i)",
+                choices=["t2i", "i2i"],
+                value=self.config.get("hidream_task", "t2i"),
+                interactive=True,
+            )
+
+            self.hidream_model_type = gr.Dropdown(
+                label="Model Type",
+                choices=["full", "dev"],
+                value=self.config.get("hidream_model_type", "full"),
+                interactive=True,
+            )
+
+            self.fp8_te = gr.Checkbox(
+                label="Use FP8 for Text Encoder",
+                value=self.config.get("fp8_te", False),
+            )
+
+        with gr.Row():
+            self.dino_loss_weight = gr.Number(
+                label="DINOv3 Auxiliary Loss Weight",
+                info="0 disables the DINOv3 auxiliary loss",
+                value=self.config.get("dino_loss_weight", 0),
+                step=0.001,
+                interactive=True,
             )
 
     def _initialize_perf_fields(self) -> None:

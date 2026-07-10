@@ -201,6 +201,27 @@ REGISTRY = {
         unsupported_shared_args=set(),
         extra_args=["kandinsky5_task", "text_encoder_clip", "text_encoder_qwen"],
     ),
+    "hidream_o1": ArchitectureSpec(
+        key="hidream_o1",
+        label="HiDream-O1-Image",
+        train_script="hidream_o1_train_network.py",
+        cache_latents_script="hidream_o1_cache_pixel.py",
+        cache_teo_script="hidream_o1_cache_text_encoder_outputs.py",
+        model_field_groups=[
+            "dit_vae",
+            "hidream_o1_extras",
+            "fp8_common",
+            "flow_matching",
+            "perf",
+        ],
+        unsupported_shared_args=set(),
+        extra_args=[
+            "hidream_task",
+            "hidream_model_type",
+            "fp8_te",
+            "dino_loss_weight",
+        ],
+    ),
 }
 
 DEFAULT_ARCHITECTURE = "hunyuanvideo"

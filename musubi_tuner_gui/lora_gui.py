@@ -207,6 +207,10 @@ FIELD_NAMES = [
     "kandinsky5_task",
     "text_encoder_clip",
     "text_encoder_qwen",
+    "hidream_task",
+    "hidream_model_type",
+    "fp8_te",
+    "dino_loss_weight",
 ]
 
 
@@ -552,6 +556,17 @@ def train_model(
         if param_dict.get("text_encoder_qwen"):
             run_cache_teo_cmd.append("--text_encoder_qwen")
             run_cache_teo_cmd.append(str(param_dict.get("text_encoder_qwen")))
+    elif arch.key == "hidream_o1":
+        if param_dict.get("dit"):
+            run_cache_teo_cmd.append("--dit")
+            run_cache_teo_cmd.append(str(param_dict.get("dit")))
+
+        if param_dict.get("fp8_te"):
+            run_cache_teo_cmd.append("--fp8_te")
+
+        if param_dict.get("hidream_model_type"):
+            run_cache_teo_cmd.append("--model_type")
+            run_cache_teo_cmd.append(str(param_dict.get("hidream_model_type")))
     else:
         if param_dict.get("caching_teo_text_encoder1"):
             run_cache_teo_cmd.append("--text_encoder1")
@@ -577,6 +592,7 @@ def train_model(
         "hv_1_5",
         "framepack",
         "kandinsky5",
+        "hidream_o1",
     ) and param_dict.get("caching_teo_text_encoder_dtype"):
         run_cache_teo_cmd.append("--text_encoder_dtype")
         run_cache_teo_cmd.append(str(param_dict.get("caching_teo_text_encoder_dtype")))
@@ -641,14 +657,23 @@ def train_model(
             if key.startswith("caching_latent_") or key.startswith("caching_teo_"):
                 pattern_exclusion.append(key)
 
-        # Wan, HunyuanVideo 1.5, and Kandinsky 5 each have their own "--task"
-        # widget (different choices/shape), so the GUI keeps them as distinct
-        # fields ("task"/"hv15_task"/"kandinsky5_task") but the trainer's TOML
-        # key must always be literally "task".
+        # Wan, HunyuanVideo 1.5, Kandinsky 5, and HiDream-O1 each have their own
+        # "--task" widget (different choices/shape), so the GUI keeps them as
+        # distinct fields ("task"/"hv15_task"/"kandinsky5_task"/"hidream_task")
+        # but the trainer's TOML key must always be literally "task".
+        # HiDream-O1's "--model_type" gets the same treatment since
+        # "hidream_model_type" is its own distinctly-named field.
         training_parameters = [
             (key, value)
             for key, value in parameters
-            if key not in ("task", "hv15_task", "kandinsky5_task")
+            if key
+            not in (
+                "task",
+                "hv15_task",
+                "kandinsky5_task",
+                "hidream_task",
+                "hidream_model_type",
+            )
         ]
         if arch.key == "wan":
             training_parameters.append(("task", param_dict.get("task")))
@@ -656,6 +681,11 @@ def train_model(
             training_parameters.append(("task", param_dict.get("hv15_task")))
         elif arch.key == "kandinsky5":
             training_parameters.append(("task", param_dict.get("kandinsky5_task")))
+        elif arch.key == "hidream_o1":
+            training_parameters.append(("task", param_dict.get("hidream_task")))
+            training_parameters.append(
+                ("model_type", param_dict.get("hidream_model_type"))
+            )
 
         SaveConfigFileToRun(
             parameters=training_parameters,
@@ -731,6 +761,7 @@ def apply_architecture(architecture_key):
         gr.Group(visible="hv_1_5_extras" in spec.model_field_groups),
         gr.Group(visible="framepack_extras" in spec.model_field_groups),
         gr.Group(visible="kandinsky5_extras" in spec.model_field_groups),
+        gr.Group(visible="hidream_o1_extras" in spec.model_field_groups),
         gr.Group(visible="perf" in spec.model_field_groups),
         gr.Group(visible="flow_matching" in spec.model_field_groups),
     )
@@ -777,6 +808,7 @@ def lora_tab(
                 model.group_hv_1_5_extras,
                 model.group_framepack_extras,
                 model.group_kandinsky5_extras,
+                model.group_hidream_o1_extras,
                 model.group_perf,
                 model.group_flow_matching,
             ],
@@ -1009,6 +1041,11 @@ def lora_tab(
         model.kandinsky5_task,
         model.text_encoder_clip,
         model.text_encoder_qwen,
+        # hidream_o1
+        model.hidream_task,
+        model.hidream_model_type,
+        model.fp8_te,
+        model.dino_loss_weight,
     ]
 
     run_state = gr.Textbox(value=train_state_value, visible=False)

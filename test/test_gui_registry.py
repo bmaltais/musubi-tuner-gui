@@ -31,7 +31,9 @@ ALL_GROUP_NAMES = {
     "hv_extras",
     "wan_extras",
     "single_text_encoder",
+    "model_version",
     "qwen_image_extras",
+    "flux_2_extras",
     "perf",
     "flow_matching",
 }
@@ -82,33 +84,23 @@ def test_architecture_choices_cover_full_registry():
 
 @pytest.mark.parametrize("key,spec", REGISTRY.items())
 def test_apply_architecture_visibility_matches_model_field_groups(key, spec):
-    (
-        dit_vae,
-        hv_extras,
-        wan_extras,
-        single_text_encoder,
-        qwen_image_extras,
-        perf,
-        flow_matching,
-    ) = apply_architecture(key)
-    expected = {
-        "dit_vae": "dit_vae" in spec.model_field_groups,
-        "hv_extras": "hv_extras" in spec.model_field_groups,
-        "wan_extras": "wan_extras" in spec.model_field_groups,
-        "single_text_encoder": "single_text_encoder" in spec.model_field_groups,
-        "qwen_image_extras": "qwen_image_extras" in spec.model_field_groups,
-        "perf": "perf" in spec.model_field_groups,
-        "flow_matching": "flow_matching" in spec.model_field_groups,
-    }
-    actual = {
-        "dit_vae": dit_vae.visible,
-        "hv_extras": hv_extras.visible,
-        "wan_extras": wan_extras.visible,
-        "single_text_encoder": single_text_encoder.visible,
-        "qwen_image_extras": qwen_image_extras.visible,
-        "perf": perf.visible,
-        "flow_matching": flow_matching.visible,
-    }
+    # apply_architecture() returns groups in this fixed order (see lora_gui.py).
+    ordered_group_names = [
+        "dit_vae",
+        "hv_extras",
+        "wan_extras",
+        "single_text_encoder",
+        "model_version",
+        "qwen_image_extras",
+        "flux_2_extras",
+        "perf",
+        "flow_matching",
+    ]
+    assert set(ordered_group_names) == ALL_GROUP_NAMES
+    groups = apply_architecture(key)
+    assert len(groups) == len(ordered_group_names)
+    expected = {name: name in spec.model_field_groups for name in ordered_group_names}
+    actual = {name: group.visible for name, group in zip(ordered_group_names, groups)}
     assert actual == expected
 
 

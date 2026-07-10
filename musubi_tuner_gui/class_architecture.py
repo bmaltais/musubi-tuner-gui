@@ -52,6 +52,7 @@ REGISTRY = {
         model_field_groups=[
             "dit_vae",
             "single_text_encoder",
+            "model_version",
             "qwen_image_extras",
             "flow_matching",
             "perf",
@@ -74,6 +75,23 @@ REGISTRY = {
         model_field_groups=["dit_vae", "single_text_encoder", "flow_matching", "perf"],
         unsupported_shared_args=set(),
         extra_args=["text_encoder"],
+    ),
+    "flux_2": ArchitectureSpec(
+        key="flux_2",
+        label="FLUX.2",
+        train_script="flux_2_train_network.py",
+        cache_latents_script="flux_2_cache_latents.py",
+        cache_teo_script="flux_2_cache_text_encoder_outputs.py",
+        model_field_groups=[
+            "dit_vae",
+            "single_text_encoder",
+            "model_version",
+            "flux_2_extras",
+            "flow_matching",
+            "perf",
+        ],
+        unsupported_shared_args=set(),
+        extra_args=["text_encoder", "fp8_text_encoder", "model_version"],
     ),
 }
 

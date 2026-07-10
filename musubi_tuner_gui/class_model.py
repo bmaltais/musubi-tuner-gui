@@ -48,9 +48,17 @@ class Model:
         with self.group_single_text_encoder:
             self._initialize_single_text_encoder_fields()
 
+        self.group_model_version = gr.Group(visible=True)
+        with self.group_model_version:
+            self._initialize_model_version_fields()
+
         self.group_qwen_image_extras = gr.Group(visible=True)
         with self.group_qwen_image_extras:
             self._initialize_qwen_image_extras_fields()
+
+        self.group_flux_2_extras = gr.Group(visible=True)
+        with self.group_flux_2_extras:
+            self._initialize_flux_2_extras_fields()
 
         self.group_perf = gr.Group(visible=True)
         with self.group_perf:
@@ -221,18 +229,21 @@ class Model:
                 value=self.config.get("text_encoder", ""),
             )
 
-    def _initialize_qwen_image_extras_fields(self) -> None:
-        """Qwen-Image-only model fields (VL fp8, model version, layered mode)."""
+    def _initialize_model_version_fields(self) -> None:
+        """Shared by architectures with a model-version selector (Qwen-Image, FLUX.2)."""
         with gr.Row():
             self.model_version = gr.Dropdown(
                 label="Model Version",
-                info="Qwen-Image variant to train",
+                info="Model variant to train",
                 choices=["original", "layered", "edit", "edit-2509"],
                 value=self.config.get("model_version", "original"),
                 interactive=True,
                 allow_custom_value=True,
             )
 
+    def _initialize_qwen_image_extras_fields(self) -> None:
+        """Qwen-Image-only model fields (VL fp8, layered mode)."""
+        with gr.Row():
             self.fp8_vl = gr.Checkbox(
                 label="Use FP8 for Text Encoder",
                 value=self.config.get("fp8_vl", False),
@@ -249,6 +260,14 @@ class Model:
             self.remove_first_image_from_target = gr.Checkbox(
                 label="Remove First Image From Target (layered model)",
                 value=self.config.get("remove_first_image_from_target", False),
+            )
+
+    def _initialize_flux_2_extras_fields(self) -> None:
+        """FLUX.2-only model fields."""
+        with gr.Row():
+            self.fp8_text_encoder = gr.Checkbox(
+                label="Use FP8 for Text Encoder",
+                value=self.config.get("fp8_text_encoder", False),
             )
 
     def _initialize_perf_fields(self) -> None:
